@@ -14,7 +14,6 @@ coverage/
 
 # Interview preparation notes — local only, never pushed
 docs/interview-prep/
-docs/adr/
 
 # Java build output
 **/target/

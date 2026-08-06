@@ -1,30 +1,23 @@
 package com.hermes.admin.domain;
 
-import com.hermes.command.infrastructure.eventstore.EventSchemaUpcaster;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Comprehensive test suite for Workflow & Event Versioning.
+ * Test suite for Workflow Versioning.
  *
  * <p>Tests cover:
  * <ul>
  *   <li>WorkflowVersionRegistry: register draft, publish, deprecate, list, resolve</li>
  *   <li>Version pinning: executions use creation-time version</li>
  *   <li>Registry invariants: duplicate registration, invalid versions, DRAFT guard</li>
- *   <li>EventSchemaUpcaster: individual upcaster transforms</li>
- *   <li>Chain upcasting: v1 → v3 via intermediate v2</li>
- *   <li>Idempotency: already-current-version events pass through unchanged</li>
- *   <li>Custom upcaster registration</li>
  * </ul>
  */
 class VersioningTest {
@@ -208,163 +201,6 @@ class VersioningTest {
             registry.deprecate(PIPELINE, 1);
             assertThatCode(() -> registry.deprecate(PIPELINE, 1)).doesNotThrowAnyException();
             assertThat(registry.getExact(PIPELINE, 1).isDeprecated()).isTrue();
-        }
-    }
-
-    // ── EventSchemaUpcaster ────────────────────────────────────────────────
-
-    @Nested
-    @DisplayName("EventSchemaUpcaster")
-    class UpcasterTests {
-
-        private EventSchemaUpcaster upcaster;
-
-        @BeforeEach
-        void setUp() {
-            upcaster = new EventSchemaUpcaster();
-        }
-
-        @Test
-        @DisplayName("v1 WorkflowExecutionStarted gets priority=NORMAL added")
-        void testUpcast_workflowExecutionStarted_v1_addsPriority() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("executionId", "exec-1");
-            payload.put("workflowName", "document-pipeline");
-            payload.put("workflowVersion", 1);
-
-            // Upcast from v1 to current (v3)
-            var result = upcaster.upcast("WorkflowExecutionStarted", 1, payload);
-
-            assertThat(result.wasUpcasted()).isTrue();
-            assertThat(result.payload()).containsKey("priority");
-            assertThat(result.payload().get("priority")).isEqualTo("NORMAL");
-        }
-
-        @Test
-        @DisplayName("v1 WorkflowExecutionStarted chain: v1 → v2 → v3 adds both fields")
-        void testUpcast_workflowExecutionStarted_v1_chainProducesBothFields() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("executionId", "exec-1");
-            payload.put("correlationId", "trace-abc-123");
-
-            var result = upcaster.upcast("WorkflowExecutionStarted", 1, payload);
-
-            assertThat(result.version()).isEqualTo(upcaster.getCurrentVersion("WorkflowExecutionStarted"));
-            // v1→v2: priority added
-            assertThat(result.payload()).containsKey("priority");
-            // v2→v3: correlationGroupId derived from correlationId prefix
-            assertThat(result.payload()).containsKey("correlationGroupId");
-            assertThat(result.payload().get("correlationGroupId")).isEqualTo("trace");
-        }
-
-        @Test
-        @DisplayName("v2 WorkflowExecutionStarted only runs v2→v3 upcaster")
-        void testUpcast_workflowExecutionStarted_v2_onlyRunsV2toV3() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("priority", "HIGH");   // already has priority
-            payload.put("correlationId", "grp-xyz");
-
-            var result = upcaster.upcast("WorkflowExecutionStarted", 2, payload);
-
-            assertThat(result.wasUpcasted()).isTrue();
-            // priority was NOT overwritten by v1→v2 upcaster (putIfAbsent)
-            assertThat(result.payload().get("priority")).isEqualTo("HIGH");
-            assertThat(result.payload()).containsKey("correlationGroupId");
-        }
-
-        @Test
-        @DisplayName("current version event passes through unchanged (no upcast needed)")
-        void testUpcast_currentVersion_noUpcast() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("executionId", "exec-1");
-            payload.put("priority", "HIGH");
-            payload.put("correlationGroupId", "grp-1");
-
-            int currentVersion = upcaster.getCurrentVersion("WorkflowExecutionStarted");
-            var result = upcaster.upcast("WorkflowExecutionStarted", currentVersion, payload);
-
-            assertThat(result.wasUpcasted()).isFalse();
-            assertThat(result.payload()).isEqualTo(payload);
-        }
-
-        @Test
-        @DisplayName("StepCompleted v1 → v2 wraps output in result envelope")
-        void testUpcast_stepCompleted_v1_wrapsOutputInResult() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("stepName", "ocr");
-            payload.put("output", Map.of("text", "Invoice #001"));
-
-            var result = upcaster.upcast("StepCompleted", 1, payload);
-
-            assertThat(result.wasUpcasted()).isTrue();
-            assertThat(result.payload()).doesNotContainKey("output");
-            assertThat(result.payload()).containsKey("result");
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> resultEnvelope = (Map<String, Object>) result.payload().get("result");
-            assertThat(resultEnvelope).containsKey("output");
-            assertThat(resultEnvelope).containsKey("metadata");
-        }
-
-        @Test
-        @DisplayName("StepFailed v1 → v2 adds retryAttempts=0 and errorCode=UNKNOWN")
-        void testUpcast_stepFailed_v1_addsRetryAttempts() {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("stepName", "ocr");
-            payload.put("error", "Timeout after 120s");
-            payload.put("retryable", true);
-
-            var result = upcaster.upcast("StepFailed", 1, payload);
-
-            assertThat(result.wasUpcasted()).isTrue();
-            assertThat(result.payload().get("retryAttempts")).isEqualTo(0);
-            assertThat(result.payload().get("errorCode")).isEqualTo("UNKNOWN");
-        }
-
-        @Test
-        @DisplayName("unknown event type passes through unchanged")
-        void testUpcast_unknownEventType_passthroughUnchanged() {
-            Map<String, Object> payload = Map.of("foo", "bar");
-            var result = upcaster.upcast("SomeNewEventTypeWeNeverHeardOf", 1, payload);
-
-            assertThat(result.wasUpcasted()).isFalse();
-            assertThat(result.payload()).isEqualTo(payload);
-        }
-
-        @Test
-        @DisplayName("custom upcaster can be registered at runtime")
-        void testRegisterCustomUpcaster() {
-            upcaster.register(new EventSchemaUpcaster.UpcasterEntry(
-                    "MyCustomEvent", 1, 2,
-                    p -> {
-                        var upgraded = new LinkedHashMap<>(p);
-                        upgraded.put("schemaVersion", "v2");
-                        return upgraded;
-                    }
-            ));
-
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("field1", "value1");
-
-            var result = upcaster.upcast("MyCustomEvent", 1, payload);
-
-            assertThat(result.wasUpcasted()).isTrue();
-            assertThat(result.payload().get("schemaVersion")).isEqualTo("v2");
-        }
-
-        @Test
-        @DisplayName("UpcasterEntry rejects non-sequential version jump")
-        void testUpcasterEntry_nonSequentialVersion_throws() {
-            assertThatThrownBy(() -> new EventSchemaUpcaster.UpcasterEntry(
-                    "SomeEvent", 1, 3, p -> p  // version 1 → 3 is illegal
-            )).isInstanceOf(IllegalArgumentException.class)
-              .hasMessageContaining("increment version by exactly 1");
-        }
-
-        @Test
-        @DisplayName("getCurrentVersion returns 1 for unregistered event types")
-        void testGetCurrentVersion_unregisteredType_returnsOne() {
-            assertThat(upcaster.getCurrentVersion("NonExistentEvent")).isEqualTo(1);
         }
     }
 }

@@ -1,0 +1,94 @@
+{
+  "Comment": "Hermes document-pipeline v1 — validate → ocr → classify",
+  "StartAt": "Validate",
+  "States": {
+    "Validate": {
+      "Type": "Task",
+      "Resource": "${validate_worker_arn}",
+      "Parameters": {
+        "executionId.$": "$.executionId",
+        "tenantId.$": "$.tenantId",
+        "stepName": "validate",
+        "s3Key.$": "$.s3Key"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.validateOutput",
+      "Next": "Ocr"
+    },
+    "Ocr": {
+      "Type": "Task",
+      "Resource": "${ocr_worker_arn}",
+      "Parameters": {
+        "executionId.$": "$.executionId",
+        "tenantId.$": "$.tenantId",
+        "stepName": "ocr",
+        "s3Key.$": "$.s3Key",
+        "priorOutput.$": "$.validateOutput"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.ocrOutput",
+      "Next": "Classify"
+    },
+    "Classify": {
+      "Type": "Task",
+      "Resource": "${classify_worker_arn}",
+      "Parameters": {
+        "executionId.$": "$.executionId",
+        "tenantId.$": "$.tenantId",
+        "stepName": "classify",
+        "s3Key.$": "$.s3Key",
+        "priorOutput.$": "$.ocrOutput"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "WorkflowFailed"
+        }
+      ],
+      "ResultPath": "$.classifyOutput",
+      "Next": "WorkflowSucceeded"
+    },
+    "WorkflowSucceeded": {
+      "Type": "Succeed"
+    },
+    "WorkflowFailed": {
+      "Type": "Fail",
+      "Error": "WorkflowFailed",
+      "Cause": "One or more activities failed"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "document-pipeline": {
+    "version": 1,
+    "description": "Built-in document processing workflow template",
+    "activities": ["validate", "ocr", "classify"],
+    "terminalActivity": "classify"
+  }
+}

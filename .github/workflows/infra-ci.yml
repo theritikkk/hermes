@@ -1,0 +1,85 @@
+name: Infra CI
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-fmt:
+    name: Terraform Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.8"
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra/
+
+  terraform-validate:
+    name: Terraform Validate (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.8"
+      - name: Terraform Init (local backend)
+        working-directory: infra/environments/${{ matrix.environment }}
+        run: terraform init -backend=false
+      - name: Terraform Validate
+        working-directory: infra/environments/${{ matrix.environment }}
+        run: terraform validate
+
+  terraform-plan-dev:
+    name: Terraform Plan (dev)
+    runs-on: ubuntu-latest
+    needs: [terraform-fmt, terraform-validate]
+    environment: dev
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.8"
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLE_DEV }}
+          aws-region: us-east-1
+        continue-on-error: true   # Plan shows diff even without real AWS access
+      - name: Terraform Init
+        working-directory: infra/environments/dev
+        run: terraform init -backend=false
+      - name: Terraform Plan
+        id: plan
+        working-directory: infra/environments/dev
+        run: |
+          terraform plan -no-color 2>&1 | tee plan.txt
+          echo "plan_output<<EOF" >> $GITHUB_OUTPUT
+          cat plan.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      - name: Post plan to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const planOutput = `${{ steps.plan.outputs.plan_output }}`;
+            const truncated = planOutput.length > 60000
+              ? planOutput.substring(0, 60000) + '\n... (truncated)'
+              : planOutput;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan — dev\n\n\`\`\`terraform\n${truncated}\n\`\`\``
+            });

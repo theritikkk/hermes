@@ -1,0 +1,215 @@
+{
+  "Comment": "Hermes document-pipeline v2 — validate -> ocr -> classify -> Parallel(ner, embed) -> index",
+  "StartAt": "ValidateChoice",
+  "States": {
+    "ValidateChoice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.replayContext.cachedOutputs.validate",
+          "IsPresent": true,
+          "Next": "OcrChoice"
+        }
+      ],
+      "Default": "Validate"
+    },
+    "Validate": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${validate_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "validate",
+          "s3Key.$": "$.s3Key",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "CompensateSaga"
+        }
+      ],
+      "ResultPath": "$.validateOutput",
+      "Next": "OcrChoice"
+    },
+    "OcrChoice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.replayContext.cachedOutputs.ocr",
+          "IsPresent": true,
+          "Next": "ClassifyChoice"
+        }
+      ],
+      "Default": "Ocr"
+    },
+    "Ocr": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${ocr_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "ocr",
+          "s3Key.$": "$.s3Key",
+          "priorOutput.$": "$.validateOutput",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "CompensateSaga"
+        }
+      ],
+      "ResultPath": "$.ocrOutput",
+      "Next": "ClassifyChoice"
+    },
+    "ClassifyChoice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.replayContext.cachedOutputs.classify",
+          "IsPresent": true,
+          "Next": "ParallelEnrichment"
+        }
+      ],
+      "Default": "Classify"
+    },
+    "Classify": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${classify_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "classify",
+          "s3Key.$": "$.s3Key",
+          "priorOutput.$": "$.ocrOutput",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "CompensateSaga"
+        }
+      ],
+      "ResultPath": "$.classifyOutput",
+      "Next": "ParallelEnrichment"
+    },
+    "ParallelEnrichment": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Ner",
+          "States": {
+            "Ner": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+              "Parameters": {
+                "FunctionName": "${ner_worker_arn}",
+                "Payload": {
+                  "executionId.$": "$.executionId",
+                  "tenantId.$": "$.tenantId",
+                  "stepName": "ner",
+                  "priorOutput.$": "$.classifyOutput",
+                  "taskToken.$": "$$.Task.Token"
+                }
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Embed",
+          "States": {
+            "Embed": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+              "Parameters": {
+                "FunctionName": "${embed_worker_arn}",
+                "Payload": {
+                  "executionId.$": "$.executionId",
+                  "tenantId.$": "$.tenantId",
+                  "stepName": "embed",
+                  "priorOutput.$": "$.classifyOutput",
+                  "taskToken.$": "$$.Task.Token"
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.parallelOutput",
+      "Next": "Index"
+    },
+    "Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${index_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "index",
+          "priorOutput.$": "$.parallelOutput",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.indexOutput",
+      "Next": "WorkflowSucceeded"
+    },
+    "CompensateSaga": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${saga_compensator_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "reason": "Step failure in document-pipeline-v2"
+        }
+      },
+      "Next": "WorkflowFailed"
+    },
+    "WorkflowSucceeded": {
+      "Type": "Succeed"
+    },
+    "WorkflowFailed": {
+      "Type": "Fail",
+      "Error": "WorkflowExecutionFailed",
+      "Cause": "Execution failed and saga compensation triggered"
+    }
+  }
+}

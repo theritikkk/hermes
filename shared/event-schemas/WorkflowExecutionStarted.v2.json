@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/WorkflowExecutionStarted/v2",
+  "title": "WorkflowExecutionStarted",
+  "description": "Schema v2: adds 'priority' field (NORMAL | HIGH | CRITICAL).",
+  "type": "object",
+  "required": [
+    "eventId", "eventType", "eventVersion", "aggregateId",
+    "tenantId", "correlationId", "occurredAt", "payload"
+  ],
+  "properties": {
+    "eventId":       { "type": "string", "format": "uuid" },
+    "eventType":     { "const": "WorkflowExecutionStarted" },
+    "eventVersion":  { "type": "integer", "minimum": 2, "maximum": 2 },
+    "aggregateId":   { "type": "string" },
+    "tenantId":      { "type": "string" },
+    "correlationId": { "type": "string" },
+    "occurredAt":    { "type": "string", "format": "date-time" },
+    "payload": {
+      "type": "object",
+      "required": ["executionId", "workflowName", "workflowVersion", "assetId", "s3Key", "priority"],
+      "properties": {
+        "executionId":     { "type": "string" },
+        "workflowName":    { "type": "string" },
+        "workflowVersion": { "type": "integer" },
+        "assetId":         { "type": "string" },
+        "s3Key":           { "type": "string" },
+        "priority": {
+          "type": "string",
+          "enum": ["NORMAL", "HIGH", "CRITICAL"],
+          "description": "Added in v2. Upcaster default: NORMAL for all v1 events."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

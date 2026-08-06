@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/WorkflowExecutionStarted/v1",
+  "title": "WorkflowExecutionStarted",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "tenantId",
+    "correlationId",
+    "occurredAt",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "eventType": { "const": "WorkflowExecutionStarted" },
+    "eventVersion": { "type": "integer", "minimum": 1 },
+    "aggregateId": { "type": "string" },
+    "tenantId": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "payload": {
+      "type": "object",
+      "required": ["executionId", "workflowName", "workflowVersion", "assetId", "s3Key"],
+      "properties": {
+        "executionId": { "type": "string" },
+        "workflowName": { "type": "string" },
+        "workflowVersion": { "type": "integer" },
+        "assetId": { "type": "string" },
+        "s3Key": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/StepCompleted/v1",
+  "title": "StepCompleted",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "tenantId",
+    "correlationId",
+    "occurredAt",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "eventType": { "const": "StepCompleted" },
+    "eventVersion": { "type": "integer", "minimum": 1 },
+    "aggregateId": { "type": "string" },
+    "tenantId": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "payload": {
+      "type": "object",
+      "required": ["executionId", "stepName", "output"],
+      "properties": {
+        "executionId": { "type": "string" },
+        "stepName": { "type": "string" },
+        "output": { "type": "object" }
+      }
+    }
+  }
+}

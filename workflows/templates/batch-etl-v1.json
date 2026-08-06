@@ -1,0 +1,78 @@
+{
+  "Comment": "Hermes batch-etl v1 — ingestBatch -> Map(ItemTransform) -> validateBatch -> loadToWarehouse",
+  "StartAt": "IngestBatch",
+  "States": {
+    "IngestBatch": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${ingest_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "batchId.$": "$.batchId",
+          "s3SourceKey.$": "$.s3SourceKey",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.ingestOutput",
+      "Next": "ProcessBatchItems"
+    },
+    "ProcessBatchItems": {
+      "Type": "Map",
+      "ItemsPath": "$.ingestOutput.items",
+      "MaxConcurrency": 10,
+      "Iterator": {
+        "StartAt": "TransformItem",
+        "States": {
+          "TransformItem": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${transform_worker_arn}",
+              "Payload": {
+                "item.$": "$",
+                "executionId.$": "$.executionId"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.transformedItems",
+      "Next": "ValidateBatch"
+    },
+    "ValidateBatch": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${validate_batch_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "items.$": "$.transformedItems",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.validationOutput",
+      "Next": "LoadToWarehouse"
+    },
+    "LoadToWarehouse": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${load_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "data.$": "$.validationOutput",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.loadOutput",
+      "Next": "BatchSuccess"
+    },
+    "BatchSuccess": {
+      "Type": "Succeed"
+    }
+  }
+}

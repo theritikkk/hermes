@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://hermes.local/schemas/WorkflowExecutionStarted/v3",
+  "title": "WorkflowExecutionStarted",
+  "description": "Schema v3: adds 'correlationGroupId' for cross-tenant distributed tracing.",
+  "type": "object",
+  "required": [
+    "eventId", "eventType", "eventVersion", "aggregateId",
+    "tenantId", "correlationId", "occurredAt", "payload"
+  ],
+  "properties": {
+    "eventId":       { "type": "string", "format": "uuid" },
+    "eventType":     { "const": "WorkflowExecutionStarted" },
+    "eventVersion":  { "type": "integer", "minimum": 3, "maximum": 3 },
+    "aggregateId":   { "type": "string" },
+    "tenantId":      { "type": "string" },
+    "correlationId": { "type": "string" },
+    "occurredAt":    { "type": "string", "format": "date-time" },
+    "payload": {
+      "type": "object",
+      "required": ["executionId", "workflowName", "workflowVersion", "assetId", "s3Key", "priority", "correlationGroupId"],
+      "properties": {
+        "executionId":         { "type": "string" },
+        "workflowName":        { "type": "string" },
+        "workflowVersion":     { "type": "integer" },
+        "assetId":             { "type": "string" },
+        "s3Key":               { "type": "string" },
+        "priority":            { "type": "string", "enum": ["NORMAL", "HIGH", "CRITICAL"] },
+        "correlationGroupId": {
+          "type": "string",
+          "description": "Added in v3. Derived from correlationId prefix by upcaster."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "Hermes/Platform", "CommandAccepted", "TenantId", "tenant-dev", { "stat": "Sum" } ],
+          [ ".", "EventAppended", "TenantId", "tenant-dev", { "stat": "Sum" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Command API Throughput & Event Appends",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 0,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "hermes-dev-dlq", { "stat": "Maximum", "color": "#d62728" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "DLQ Depth (Dead-Letter Messages)",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "Hermes/Platform", "SagaCompensationTriggered", { "stat": "Sum", "color": "#ff7f0e" } ],
+          [ ".", "CompensatedStepsCount", { "stat": "Sum" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Saga Rollbacks & Compensated Steps",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 6,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [ "Hermes/Platform", "ReplayJobDurationMs", { "stat": "Average", "color": "#1f77b4" } ],
+          [ "...", { "stat": "p99", "color": "#aec7e8" } ]
+        ],
+        "view": "timeSeries",
+        "stacked": false,
+        "region": "us-east-1",
+        "title": "Replay Job Latency (Avg / p99)",
+        "period": 60
+      }
+    }
+  ]
+}

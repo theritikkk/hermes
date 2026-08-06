@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: hermes-command-api
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${COGNITO_ISSUER_URI:https://cognito-idp.us-east-1.amazonaws.com/us-east-1_placeholder}
+
+hermes:
+  event-store:
+    table-name: ${EVENT_STORE_TABLE:hermes-dev-event-store}
+  event-bus:
+    name: ${EVENT_BUS_NAME:hermes-dev-events}
+  idempotency:
+    table-name: ${EVENT_STORE_TABLE:hermes-dev-event-store}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+
+logging:
+  level:
+    com.hermes: INFO

@@ -1,0 +1,85 @@
+{
+  "Comment": "Hermes approval-flow v1 — submit -> humanReview -> Choice(approved/denied) -> notify",
+  "StartAt": "SubmitRequest",
+  "States": {
+    "SubmitRequest": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${submit_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "submit",
+          "requestData.$": "$.requestData",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.submitOutput",
+      "Next": "HumanReview"
+    },
+    "HumanReview": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "Parameters": {
+        "FunctionName": "${human_gate_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "stepName": "humanReview",
+          "approverGroup": "FINANCE_MANAGERS",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "ResultPath": "$.reviewResult",
+      "Next": "CheckApprovalStatus"
+    },
+    "CheckApprovalStatus": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.reviewResult.approved",
+          "BooleanEquals": true,
+          "Next": "NotifyApproval"
+        }
+      ],
+      "Default": "NotifyRejection"
+    },
+    "NotifyApproval": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${notify_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "status": "APPROVED",
+          "reviewResult.$": "$.reviewResult"
+        }
+      },
+      "Next": "ApprovedSuccess"
+    },
+    "NotifyRejection": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${notify_worker_arn}",
+        "Payload": {
+          "executionId.$": "$.executionId",
+          "tenantId.$": "$.tenantId",
+          "status": "REJECTED",
+          "reviewResult.$": "$.reviewResult"
+        }
+      },
+      "Next": "RejectedState"
+    },
+    "ApprovedSuccess": {
+      "Type": "Succeed"
+    },
+    "RejectedState": {
+      "Type": "Fail",
+      "Error": "RequestRejected",
+      "Cause": "Human review rejected the submitted request"
+    }
+  }
+}

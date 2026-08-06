@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes Workflow Platform — Operator Dashboard & Replay Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(18, 26, 44, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    /* Glassmorphism containers */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .brand-title h1 { font-size: 20px; font-weight: 600; }
+    .brand-title p { font-size: 12px; color: var(--text-muted); }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 28px; font-weight: 700; margin: 4px 0; }
+    .metric-sub { font-size: 12px; color: var(--accent-green); }
+
+    /* Main Dashboard Layout */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    /* Pipeline Step Tracker */
+    .steps-tracker {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .steps-tracker::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border-color);
+      z-index: 1;
+    }
+
+    .step-item {
+      position: relative;
+      z-index: 2;
+      background: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .step-item.completed { border-color: var(--accent-green); color: var(--accent-green); }
+    .step-item.running { border-color: var(--accent-blue); color: var(--accent-blue); animation: pulse 2s infinite; }
+    .step-item.compensated { border-color: var(--accent-amber); color: var(--accent-amber); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    /* Event Log Table */
+    .table-container { overflow-x: auto; margin-top: 12px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { color: var(--text-muted); font-weight: 500; padding: 10px; border-bottom: 1px solid var(--border-color); }
+    td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); }
+    .code-font { font-family: 'JetBrains Mono', monospace; }
+
+    /* Time Travel Slider */
+    .replay-control {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-cyan);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+    .badge-warn { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">H</div>
+      <div class="brand-title">
+        <h1>Hermes Platform</h1>
+        <p>Event-Sourced Workflow Orchestration & Replay Engine</p>
+      </div>
+    </div>
+    <div>
+      <span class="badge badge-success">System Operational (Region: us-east-1)</span>
+    </div>
+  </header>
+
+  <!-- Metrics Row -->
+  <div class="metrics-grid">
+    <div class="glass-panel metric-card">
+      <span class="metric-label">Command Throughput</span>
+      <span class="metric-value">1,420 <small style="font-size: 14px;">ops/s</small></span>
+      <span class="metric-sub">+8.4% from last hour</span>
+    </div>
+    <div class="glass-panel metric-card">
+      <span class="metric-label">Event Store Write Latency</span>
+      <span class="metric-value">4.2 <small style="font-size: 14px;">ms</small></span>
+      <span class="metric-sub">p99 = 12.8ms</span>
+    </div>
+    <div class="glass-panel metric-card">
+      <span class="metric-label">Snapshot Fold Speedup</span>
+      <span class="metric-value">42.5x</span>
+      <span class="metric-sub">Snapshot at Seq 9,500</span>
+    </div>
+    <div class="glass-panel metric-card">
+      <span class="metric-label">DLQ Poison Messages</span>
+      <span class="metric-value" style="color: var(--accent-amber);">0</span>
+      <span class="metric-sub">DLQ Depth: 0 items</span>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="dashboard-layout">
+
+    <!-- Left Column: Active Execution & Event Stream -->
+    <div class="glass-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Execution: <span class="code-font" style="color: var(--accent-cyan);">exec-doc-9901</span></h2>
+        <span class="badge badge-success">WORKFLOW_COMPLETED</span>
+      </div>
+
+      <!-- Pipeline Step Tracker -->
+      <div class="steps-tracker">
+        <div class="step-item completed">Validate</div>
+        <div class="step-item completed">OCR</div>
+        <div class="step-item completed">Classify</div>
+        <div class="step-item completed">Parallel(NER/Embed)</div>
+        <div class="step-item completed">Index</div>
+      </div>
+
+      <!-- Time Travel Replay Controls -->
+      <div class="replay-control">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>Time-Travel History Reconstruction Slider</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Rebuilding Aggregate State AT Sequence: <strong id="seqVal" style="color: var(--accent-cyan);">5</strong></span>
+        </div>
+        <div class="slider-container">
+          <span style="font-size: 12px;">Seq 1</span>
+          <input type="range" id="timeSlider" min="1" max="5" value="5" oninput="updateTimeTravel(this.value)">
+          <span style="font-size: 12px;">Seq 5</span>
+          <button class="btn" onclick="triggerReplay()">Replay from Step</button>
+        </div>
+      </div>
+
+      <!-- Event Stream Table -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Seq</th>
+              <th>Event Type</th>
+              <th>Aggregate ID</th>
+              <th>Correlation ID</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="eventBody">
+            <tr>
+              <td class="code-font">1</td>
+              <td><strong style="color: var(--accent-blue);">WorkflowExecutionStarted</strong></td>
+              <td class="code-font">exec-doc-9901</td>
+              <td class="code-font">corr-tr-1001</td>
+              <td>10:45:01.002</td>
+            </tr>
+            <tr>
+              <td class="code-font">2</td>
+              <td><strong style="color: var(--accent-green);">StepCompleted (validate)</strong></td>
+              <td class="code-font">exec-doc-9901</td>
+              <td class="code-font">corr-tr-1001</td>
+              <td>10:45:02.120</td>
+            </tr>
+            <tr>
+              <td class="code-font">3</td>
+              <td><strong style="color: var(--accent-green);">StepCompleted (ocr)</strong></td>
+              <td class="code-font">exec-doc-9901</td>
+              <td class="code-font">corr-tr-1001</td>
+              <td>10:45:05.441</td>
+            </tr>
+            <tr>
+              <td class="code-font">4</td>
+              <td><strong style="color: var(--accent-green);">StepCompleted (classify)</strong></td>
+              <td class="code-font">exec-doc-9901</td>
+              <td class="code-font">corr-tr-1001</td>
+              <td>10:45:07.890</td>
+            </tr>
+            <tr>
+              <td class="code-font">5</td>
+              <td><strong style="color: var(--accent-cyan);">WorkflowExecutionCompleted</strong></td>
+              <td class="code-font">exec-doc-9901</td>
+              <td class="code-font">corr-tr-1001</td>
+              <td>10:45:10.015</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Operator Controls & Workflow Registry -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- Active Registered Workflows -->
+      <div class="glass-panel">
+        <h3>Workflow Version Registry</h3>
+        <ul style="list-style: none; margin-top: 12px; font-size: 13px;">
+          <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+            <span>document-pipeline</span>
+            <span class="badge badge-success">v2 ACTIVE</span>
+          </li>
+          <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+            <span>document-pipeline</span>
+            <span class="badge badge-warn">v1 DEPRECATED</span>
+          </li>
+          <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+            <span>approval-flow</span>
+            <span class="badge badge-success">v1 ACTIVE</span>
+          </li>
+          <li style="padding: 8px 0; display: flex; justify-content: space-between;">
+            <span>batch-etl</span>
+            <span class="badge badge-success">v1 ACTIVE</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- DLQ Operator Quick Control -->
+      <div class="glass-panel">
+        <h3>DLQ Quick Control</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 8px 0 16px 0;">Monitor and manage dead-letter queue items.</p>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px;">
+          <div>Poison Threshold: <strong>receiveCount &ge; 5</strong></div>
+          <div style="color: var(--accent-green); margin-top: 4px;">Status: Clean (0 poison items)</div>
+        </div>
+        <button class="btn" style="width: 100%;" onclick="alert('DLQ is currently clean. No items to redrive.')">Inspect DLQ Queue</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function updateTimeTravel(val) {
+      document.getElementById('seqVal').innerText = val;
+    }
+
+    function triggerReplay() {
+      const seq = document.getElementById('timeSlider').value;
+      alert(`Time-Travel Replay triggered for execution exec-doc-9901 at sequence boundary ${seq}.\nReplay Job ID: replay-job-${Date.now()}`);
+    }
+  </script>
+</body>
+</html>

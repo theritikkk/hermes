@@ -1,0 +1,22 @@
+{
+  "name": "hermes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Event-sourced workflow orchestration platform",
+  "workspaces": [
+    "shared/*",
+    "services/lambda-workers/*",
+    "services/event-projections/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @hermes/domain && npm run build -w @hermes/observability && npm run build -w @hermes/event-store && npm run build -w @hermes/command-handlers && npm run build -w @hermes/activity-runner && npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

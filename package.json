@@ -6,7 +6,10 @@
   "workspaces": [
     "shared/*",
     "services/lambda-workers/*",
-    "services/event-projections/*"
+    "services/event-projections/*",
+    "services/activity-workers/*",
+    "services/command-api",
+    "services/query-api"
   ],
   "scripts": {
     "build": "npm run build -w @hermes/domain && npm run build -w @hermes/observability && npm run build -w @hermes/event-store && npm run build -w @hermes/command-handlers && npm run build -w @hermes/activity-runner && npm run build --workspaces --if-present",

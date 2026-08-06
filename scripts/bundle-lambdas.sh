@@ -15,8 +15,9 @@ bundle() {
   mkdir -p "$out"
   cp -R "$dir/dist/"* "$out/"
   cp "$dir/package.json" "$out/"
-  (cd "$out" && npm install --omit=dev --no-package-lock 2>/dev/null || true)
-  (cd "$BUILD" && zip -r "$name.zip" "$name")
+  echo "Bundling $name..."
+  node "$ROOT/scripts/copy-deps.js" "$dir/package.json" "$ROOT/node_modules" "$out/node_modules"
+  (cd "$BUILD" && zip -rq "$name.zip" "$name")
 }
 
 bundle command-api "$ROOT/services/command-api"

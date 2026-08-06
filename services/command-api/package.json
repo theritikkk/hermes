@@ -1,0 +1,21 @@
+{
+  "name": "@hermes/command-api",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/handler.js",
+  "scripts": {
+    "build": "echo '@hermes/command-api: no src/ checked in yet, using pre-built dist/handler.js as-is'"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sfn": "^3.637.0",
+    "@hermes/domain": "*",
+    "@hermes/event-store": "*",
+    "@hermes/command-handlers": "*",
+    "@hermes/observability": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/aws-lambda": "^8.10.143",
+    "typescript": "^5.5.4"
+  }
+}

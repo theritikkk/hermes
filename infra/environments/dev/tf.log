@@ -1,0 +1,36 @@
+2026-08-06T16:20:37.022+0530 [INFO]  Terraform version: 1.15.8
+2026-08-06T16:20:37.022+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.105.0
+2026-08-06T16:20:37.022+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.24.0
+2026-08-06T16:20:37.022+0530 [DEBUG] using github.com/hashicorp/terraform-svchost v0.2.1
+2026-08-06T16:20:37.022+0530 [DEBUG] using github.com/zclconf/go-cty v1.18.0
+2026-08-06T16:20:37.022+0530 [INFO]  Go runtime version: go1.25.10
+2026-08-06T16:20:37.022+0530 [INFO]  CLI args: []string{"terraform", "apply", "-target=module.command_api_lambda"}
+2026-08-06T16:20:37.022+0530 [DEBUG] Attempting to open CLI config file: /Users/ritikraj/.terraformrc
+2026-08-06T16:20:37.022+0530 [DEBUG] File doesn't exist, but doesn't need to. Ignoring.
+2026-08-06T16:20:37.022+0530 [DEBUG] ignoring non-existing provider search directory terraform.d/plugins
+2026-08-06T16:20:37.022+0530 [DEBUG] ignoring non-existing provider search directory /Users/ritikraj/.terraform.d/plugins
+2026-08-06T16:20:37.022+0530 [DEBUG] ignoring non-existing provider search directory /Users/ritikraj/Library/Application Support/io.terraform/plugins
+2026-08-06T16:20:37.022+0530 [DEBUG] ignoring non-existing provider search directory /Library/Application Support/io.terraform/plugins
+2026-08-06T16:20:37.022+0530 [INFO]  CLI command args: []string{"apply", "-target=module.command_api_lambda"}
+2026-08-06T16:20:37.626+0530 [DEBUG] checking for provisioner in "."
+2026-08-06T16:20:37.628+0530 [DEBUG] checking for provisioner in "/opt/homebrew/bin"
+2026-08-06T16:20:37.628+0530 [INFO]  backend/local: starting Apply operation
+[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mError acquiring the state lock[0m
+[31m│[0m [0m
+[31m│[0m [0m[0mError message: resource temporarily unavailable
+[31m│[0m [0mLock Info:
+[31m│[0m [0m  ID:        833ce1ff-37d1-77b5-c4d7-5f57f7a16c57
+[31m│[0m [0m  Path:      terraform.tfstate
+[31m│[0m [0m  Operation: OperationTypeApply
+[31m│[0m [0m  Who:       ritikraj@Ritiks-MacBook-Air.local
+[31m│[0m [0m  Version:   1.15.8
+[31m│[0m [0m  Created:   2026-08-06 10:24:00.058647 +0000 UTC
+[31m│[0m [0m  Info:      
+[31m│[0m [0m
+[31m│[0m [0m
+[31m│[0m [0mTerraform acquires a state lock to protect the state from being written
+[31m│[0m [0mby multiple users at the same time. Please resolve the issue above and try
+[31m│[0m [0magain. For most commands, you can disable locking with the "-lock=false"
+[31m│[0m [0mflag, but this is not recommended.
+[31m╵[0m[0m

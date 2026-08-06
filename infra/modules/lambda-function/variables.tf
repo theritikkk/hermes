@@ -12,6 +12,10 @@ variable "runtime" {
   type    = string
   default = "nodejs20.x"
 }
+variable "enable_sqs_trigger" {
+  type    = bool
+  default = false
+}
 variable "timeout" {
   type    = number
   default = 30

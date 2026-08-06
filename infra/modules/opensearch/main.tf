@@ -1,9 +1,30 @@
-variable "domain_name"   { type = string }
-variable "engine_version" { type = string; default = "OpenSearch_2.11" }
-variable "instance_type"  { type = string; default = "t3.small.search" }
-variable "instance_count" { type = number; default = 1 }
-variable "kms_key_arn"    { type = string }
-variable "tags"           { type = map(string); default = {} }
+variable "domain_name" {
+  type = string
+}
+
+variable "engine_version" {
+  type    = string
+  default = "OpenSearch_2.11"
+}
+
+variable "instance_type" {
+  type    = string
+  default = "t3.small.search"
+}
+
+variable "instance_count" {
+  type    = number
+  default = 1
+}
+
+variable "kms_key_arn" {
+  type = string
+}
+
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
 
 resource "aws_opensearch_domain" "this" {
   domain_name    = var.domain_name

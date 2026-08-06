@@ -1,10 +1,10 @@
-FROM maven:3.9.6-amazoncorretto-21-al2023 AS builder
+FROM maven:3.9.6-amazoncorretto-25-al2023 AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM amazoncorretto:21-alpine
+FROM amazoncorretto:25-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8083

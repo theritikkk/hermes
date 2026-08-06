@@ -18,7 +18,7 @@
     <description>Hermes Replay Service</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <aws.sdk.version>2.25.11</aws.sdk.version>
     </properties>
 

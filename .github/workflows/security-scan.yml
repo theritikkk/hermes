@@ -16,10 +16,10 @@ jobs:
         run: npm audit --audit-level=high
         continue-on-error: true
 
-      - name: Set up Java 21
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'corretto'
 
       - name: OWASP Dependency Check (Java)

@@ -23,7 +23,7 @@ files = {
     <description>Hermes Admin Service</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
     </properties>
 
     <dependencies>
@@ -151,12 +151,12 @@ management:
     web:
       exposure:
         include: health,info,metrics""",
-    "Dockerfile": """FROM amazoncorretto:21-alpine as builder
+    "Dockerfile": """FROM amazoncorretto:25-alpine as builder
 WORKDIR /app
 COPY . .
 RUN ./mvnw clean package -DskipTests
 
-FROM amazoncorretto:21-alpine
+FROM amazoncorretto:25-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8083

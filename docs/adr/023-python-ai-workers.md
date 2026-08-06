@@ -2,31 +2,21 @@
 
 ## Status
 
-Accepted
+**Superseded** — OCR/classify duplicates removed during Phase 1 remediation (August 2026)
 
-## Context
+## Original Decision
 
-The platform requires advanced AI/ML capabilities, including OCR (pytesseract, Textract), NLP (spaCy), embeddings (sentence-transformers), and LLM orchestration (LangChain/LangGraph). The Python ecosystem offers first-class, mature libraries for these tasks, whereas Java and TypeScript alternatives are significantly inferior or incomplete.
+Use Python 3.12 for all AI/ML activity workers (ocr-worker, classify-worker, embed-worker, ner-worker, ai-gateway).
 
-## Decision
+## Why This Was Superseded
 
-Use **Python 3.12** for all AI/ML activity workers (e.g., `ocr-worker`, `classify-worker`, `embed-worker`, `ner-worker`, `ai-gateway`).
+The Python `ocr_worker` and `classify_worker` duplicated the TypeScript implementations already present in `services/activity-workers/`. Neither Python version used any Python-specific ML library — both were simple stubs returning hardcoded data, identical in capability to the TypeScript stubs.
 
-These workers will be deployed as **Container Lambdas** rather than standard zip archives to accommodate the large deployment sizes of ML dependencies.
+Per the "no second implementation" principle, the duplicates were removed. The TypeScript stubs in `services/activity-workers/` are the canonical Phase 1 implementations.
 
-## Consequences
+The remaining Python workers (`embed_worker`, `ner_worker`, `ai_gateway`) address Phase 2+ AI/ML capabilities. They have been moved out of the active build path. If Python is genuinely needed for Phase 2 ML libraries (pytesseract, spaCy, sentence-transformers), a new ADR should be written at that time with specific library justifications.
 
-**Positive**
-- Access to the industry-standard AI/ML ecosystem, ensuring high-quality and maintainable implementations.
-- Container Lambdas sidestep the 250MB unzipped limit, easily accommodating large libraries like PyTorch or spaCy.
+## References
 
-**Negative**
-- Introduces a third runtime into the fleet (alongside Node.js/TypeScript and Java/Spring Boot).
-- Increased operational overhead to manage Python dependencies, Dockerfile definitions, and build pipelines. This overhead is justified by the ecosystem quality advantage.
-
-## Alternatives Considered
-
-| Alternative | Rejected because |
-|-------------|------------------|
-| Java | Lacks a production-grade Textract OCR pipeline library and native ML bindings are cumbersome. |
-| TypeScript | Frameworks like LangChain.js lag significantly behind their Python counterparts in features and stability. |
+- ADR-013: Node.js/TypeScript Lambda Runtime
+- `services/activity-workers/` — canonical OCR and classify implementations

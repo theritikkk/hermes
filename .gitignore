@@ -17,6 +17,16 @@ coverage/
 infra/.build/
 .DS_Store
 
+# Screenshot temporary artifacts & recordings
+screenshots/tmp/
+screenshots/raw/
+*.mov
+*.mp4
+*.mkv
+*.avi
+*.trace
+*.gif
+
 # Interview preparation notes (local only)
 docs/interview-prep/
 

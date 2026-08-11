@@ -1053,9 +1053,11 @@ module "outbox_republisher_lambda" {
 # placeholder ARNs because those workers (ner/embed/index/etc.) don't exist
 # yet — those three state machines will deploy but are not functional.
 module "workflow_registry" {
-  source      = "../../modules/workflow-registry"
-  environment = var.environment
-  role_arn    = module.sfn_exec_role.role_arn
+  source         = "../../modules/workflow-registry"
+  environment    = var.environment
+  role_arn       = module.sfn_exec_role.role_arn
+  aws_region     = data.aws_region.current.name
+  aws_account_id = data.aws_caller_identity.current.account_id
   worker_arns = {
     validate = module.validate_worker_lambda.function_arn
     ocr      = module.ocr_worker_lambda.function_arn

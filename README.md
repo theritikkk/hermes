@@ -79,7 +79,7 @@ Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit archit
 ```bash
 npm test
 ```
-*Executes 38 unit test cases across all workspace packages via Node's native test runner in ~1.2s.*
+*Executes 39 unit & integration test cases across all workspace packages via Node's native test runner in ~1.2s.*
 
 ### 2. Interactive Developer CLI
 ```bash

@@ -52,20 +52,20 @@ resource "aws_iam_role_policy_attachment" "basic" {
 }
 
 resource "aws_iam_role_policy" "custom" {
-  count = var.policy_json == null ? 0 : 1
-  name  = "${var.name}-policy"
-  role  = aws_iam_role.lambda.id
+  count  = var.policy_json == null ? 0 : 1
+  name   = "${var.name}-policy"
+  role   = aws_iam_role.lambda.id
   policy = var.policy_json
 }
 
 resource "aws_lambda_function" "this" {
-  function_name = var.name
-  role          = aws_iam_role.lambda.arn
-  handler       = var.handler
-  runtime       = var.runtime
-  filename      = data.archive_file.lambda.output_path
+  function_name    = var.name
+  role             = aws_iam_role.lambda.arn
+  handler          = var.handler
+  runtime          = var.runtime
+  filename         = data.archive_file.lambda.output_path
   source_code_hash = data.archive_file.lambda.output_base64sha256
-  timeout       = 30
+  timeout          = 30
 
   environment {
     variables = var.environment

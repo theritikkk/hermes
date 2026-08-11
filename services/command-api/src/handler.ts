@@ -1,6 +1,5 @@
 import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { randomUUID } from 'node:crypto';
-import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
 import {
   RegisterAssetCommand,
   RecordStepResultCommand,
@@ -16,8 +15,6 @@ import { createLogger } from '@hermes/observability';
 
 const eventStore = new DynamoEventStore(process.env.EVENT_STORE_TABLE!);
 const publisher = new EventBridgePublisher(process.env.EVENT_BUS_NAME!, 'hermes.command-api');
-const sfn = new SFNClient({});
-
 function json(statusCode: number, body: unknown): APIGatewayProxyResultV2 {
   return {
     statusCode,

@@ -8,10 +8,18 @@ terraform {
 
 provider "aws" { region = var.aws_region }
 
-variable "aws_region"   { type = string; default = "us-east-1" }
-variable "project"      { type = string; default = "hermes" }
-variable "environment"  { type = string; default = "staging" }
-variable "image_tag"    { type = string; default = "latest" }
+variable "aws_region" {
+  type    = string
+  default = "ap-south-1"
+}
+variable "project" {
+  type    = string
+  default = "hermes"
+}
+variable "environment" {
+  type    = string
+  default = "staging"
+}
 
 locals {
   prefix = "${var.project}-${var.environment}"
@@ -42,13 +50,13 @@ module "event_store" {
   kms_key_arn = module.kms.key_arn
   environment = var.environment
   data_class  = "EventStore"
-  
+
   gsi = [{
     name            = "GSI1"
     hash_key        = "GSI1PK"
     range_key       = "GSI1SK"
     projection_type = "ALL"
-  }, {
+    }, {
     name            = "GSI2"
     hash_key        = "GSI2PK"
     range_key       = "GSI2SK"
@@ -108,25 +116,25 @@ module "alarms" {
   source        = "../../modules/cloudwatch-alarms"
   prefix        = local.prefix
   sns_topic_arn = module.ops_alerts.arn
-  
+
   dlq_alarms = {
     outbox = { queue_name = module.outbox_queue.dlq_name }
   }
-  
+
   dynamodb_table_names = {
-    event_store        = module.event_store.table_name
+    event_store          = module.event_store.table_name
     execution_read_model = module.execution_read_model.table_name
   }
-  
+
   tags = local.tags
 }
 
 # ── Outputs ────────────────────────────────────────────────
-output "event_store_table"         { value = module.event_store.table_name }
-output "event_store_stream_arn"    { value = module.event_store.stream_arn }
+output "event_store_table" { value = module.event_store.table_name }
+output "event_store_stream_arn" { value = module.event_store.stream_arn }
 output "execution_read_model_table" { value = module.execution_read_model.table_name }
-output "event_bus_name"            { value = module.event_bus.bus_name }
-output "raw_bucket_name"           { value = module.raw_bucket.bucket_name }
-output "outbox_queue_url"          { value = module.outbox_queue.queue_url }
-output "outbox_dlq_url"            { value = module.outbox_queue.dlq_url }
-output "kms_key_arn"               { value = module.kms.key_arn }
+output "event_bus_name" { value = module.event_bus.bus_name }
+output "raw_bucket_name" { value = module.raw_bucket.bucket_name }
+output "outbox_queue_url" { value = module.outbox_queue.queue_url }
+output "outbox_dlq_url" { value = module.outbox_queue.dlq_url }
+output "kms_key_arn" { value = module.kms.key_arn }

@@ -49,17 +49,17 @@ resource "aws_db_parameter_group" "this" {
 resource "aws_db_instance" "this" {
   identifier = var.identifier
 
-  engine               = "postgres"
-  engine_version       = "16.2"
-  instance_class       = var.instance_class
-  allocated_storage    = var.allocated_storage
-  storage_type         = "gp3"
-  storage_encrypted    = true
-  kms_key_id           = var.kms_key_arn
+  engine            = "postgres"
+  engine_version    = "16.2"
+  instance_class    = var.instance_class
+  allocated_storage = var.allocated_storage
+  storage_type      = "gp3"
+  storage_encrypted = true
+  kms_key_id        = var.kms_key_arn
 
   db_name  = var.db_name
   username = var.db_username
-  password = var.db_password   # Passed from Secrets Manager via Terraform variable
+  password = var.db_password # Passed from Secrets Manager via Terraform variable
 
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [aws_security_group.this.id]

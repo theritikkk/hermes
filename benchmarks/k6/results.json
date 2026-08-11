@@ -1,25 +1,26 @@
 {
+  "note": "These results are simulated targets from a local k6 dry-run against the staging environment. They do NOT represent a live production load test. Real production load test results require a live AWS deployment with valid API credentials.",
+  "test_configuration": {
+    "engine": "k6 v0.50",
+    "duration_seconds": 270,
+    "ramp_up_seconds": 30,
+    "peak_vus": 50,
+    "ramp_down_seconds": 30,
+    "target_url": "REPLACE_WITH_ACTUAL_API_GATEWAY_URL",
+    "region": "ap-south-1"
+  },
   "metrics": {
     "http_req_duration": {
-      "avg": 145.2,
-      "min": 85.1,
-      "med": 132.4,
-      "max": 412.0,
-      "p90": 171.8,
-      "p95": 182.4,
-      "p99": 230.1
+      "note": "Target SLA values — replace with real k6 output after running load-test.js against a live deployment",
+      "target_avg": 200,
+      "target_p95": 300,
+      "target_p99": 500
     },
     "http_req_failed": {
-      "passes": 0,
-      "fails": 150000,
-      "value": 0.0
+      "target_rate": 0.001
     },
     "http_reqs": {
-      "count": 150000,
-      "rate": 285.7
-    },
-    "vus_max": {
-      "value": 500
+      "note": "Estimated based on 50 VUs x 270s / avg_latency"
     }
   }
 }

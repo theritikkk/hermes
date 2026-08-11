@@ -46,8 +46,8 @@ resource "aws_dynamodb_table" "global_event_store" {
   }
 
   tags = {
-    Project     = var.project
-    Environment = var.environment
+    Project      = var.project
+    Environment  = var.environment
     Architecture = "Multi-Region Global Table"
   }
 }
@@ -61,9 +61,9 @@ resource "aws_iam_role" "crr_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
+      Effect    = "Allow"
       Principal = { Service = "s3.amazonaws.com" }
-      Action   = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }

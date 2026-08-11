@@ -7,25 +7,22 @@ on:
 
 jobs:
   dependency-audit:
-    name: Dependency Audit
+    name: Node.js Dependency Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Node.js dependency audit
         run: npm audit --audit-level=high
-        continue-on-error: true
-
-      - name: Set up Java 25
-        uses: actions/setup-java@v4
-        with:
-          java-version: '25'
-          distribution: 'corretto'
-
-      - name: OWASP Dependency Check (Java)
-        run: mvn org.owasp:dependency-check-maven:check --no-transfer-progress
-        working-directory: services/command-api
-        continue-on-error: true
 
   secret-scan-full:
     name: Full Secret Scan

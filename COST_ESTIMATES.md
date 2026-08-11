@@ -1,6 +1,6 @@
 # Hermes — Operational AWS Cost Estimates
 
-This document provides empirical operational AWS cost estimates for running Hermes across three production workload scales in `ap-south-1` (Mumbai region).
+This document provides **calculated** operational AWS cost estimates for running Hermes across three workload scales in `ap-south-1` (Mumbai region). Figures are derived from published AWS pricing as of 2026 and represent planning estimates, not measured billing.
 
 ---
 

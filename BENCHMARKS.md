@@ -1,51 +1,49 @@
-# Hermes — System Performance & Latency Benchmarks
+# Hermes — Performance Engineering & SLA Targets
 
-This document records empirical latency, throughput, and SLA benchmarks measured across the Hermes platform running on AWS `ap-south-1`.
-
----
-
-## 1. Latency Profile per Component
-
-| Operation / Path | Target SLA | Measured Mean | p95 Latency | p99 Latency | Notes |
-|---|---|---|---|---|---|
-| **`POST /assets` Ingestion** | < 200 ms | **145 ms** | **182 ms** | **230 ms** | Includes JWT extraction, RBAC check, DynamoDB `TransactWriteItems`, and HTTP 202 response |
-| **Outbox Stream Propagation** | < 100 ms | **42 ms** | **68 ms** | **95 ms** | SQS Stream batch consumer → EventBridge `PutEvents` |
-| **EventBridge → Step Functions Trigger** | < 50 ms | **18 ms** | **29 ms** | **45 ms** | Native EventBridge target rule execution (zero Lambda cold start) |
-| **Activity Worker Execution (`validate`)** | < 100 ms | **24 ms** | **35 ms** | **52 ms** | Stateless Lambda execution validating header payload |
-| **Activity Worker Execution (`ocr`)** | < 300 ms | **110 ms** | **165 ms** | **210 ms** | Document text extraction activity |
-| **Activity Worker Execution (`classify`)** | < 150 ms | **45 ms** | **72 ms** | **98 ms** | ML classification activity |
-| **Full Workflow End-to-End (`document-pipeline-v1`)** | < 2,000 ms | **1,120 ms** | **1,450 ms** | **1,890 ms** | Total elapsed time for 3 worker activities + state transitions |
-| **Event Projection Update (`execution-read-model`)** | < 200 ms | **85 ms** | **135 ms** | **175 ms** | Asynchronous EventBridge event consumption & DynamoDB `UpdateItem` |
-| **`GET /executions/{id}` Query** | < 50 ms | **12 ms** | **19 ms** | **28 ms** | Direct $O(1)$ DynamoDB `GetItem` lookup from read model |
+> **Integrity Notice**: This document contains **engineering SLA targets and architectural latency estimates**, not measured production results.  
+> To generate real benchmark data, run the k6 load test script against your live deployment:  
+> `export TARGET_URL=<api-gateway-url> && k6 run benchmarks/k6/load-test.js`
 
 ---
 
-## 2. Load & Concurrency Benchmark
+## 1. Engineering SLA Targets per Component
 
-### Test Parameters
-- **Tool**: k6 load generator
-- **Target**: AWS API Gateway HTTP API (`ap-south-1`)
-- **Duration**: 10 Minutes
-- **Peak Concurrency**: 500 Virtual Users (VUs)
+These targets are derived from the architectural design (DynamoDB single-digit ms reads, Lambda cold-start budget, EventBridge propagation SLA). They should be validated against your deployment.
 
-### Results Summary
-```
-✓ Ingestion Requests Handled : 150,000 requests
-✓ Successful Responses (202) : 150,000 (100.00%)
-✓ Failed Requests (5xx)      : 0 (0.00%)
-✓ Average Ingestion Rate     : 250 requests/sec
-✓ Outbox Message Delivery    : 100.00% delivered to EventBridge
-✓ Dead Letter Queue (DLQ)    : 0 poison messages
-```
-
----
-
-## 3. SLA & Resource Utilization Targets
-
-| Metric | Target SLA | Measured Value |
+| Operation / Path | Target SLA | Architectural Basis |
 |---|---|---|
-| **API Gateway Uptime** | 99.99% | **100.00%** |
-| **Read Model Availability** | 99.95% | **100.00%** |
-| **Event Loss Rate** | 0.000% | **0.000%** (Guaranteed by Transactional Outbox) |
-| **Read Query Latency (p99)** | < 50 ms | **28 ms** |
-| **Ingestion Latency (p99)** | < 300 ms | **230 ms** |
+| **`POST /assets` Ingestion** | p99 < 500 ms | DynamoDB `TransactWriteItems` (~5ms) + JWT validation + Lambda overhead |
+| **Outbox Stream Propagation** | p99 < 200 ms | SQS batch poll interval (20s max) + EventBridge `PutEvents` (~2ms) |
+| **EventBridge → Step Functions Trigger** | p99 < 100 ms | Native EventBridge target rule (no additional Lambda invocation) |
+| **Full Workflow End-to-End** | p99 < 5,000 ms | 3 sequential activity workers × Lambda + Step Functions state transitions |
+| **`GET /executions/{id}` Query** | p99 < 50 ms | O(1) DynamoDB `GetItem` from pre-projected read model |
+
+---
+
+## 2. Load Test Setup
+
+The k6 load test script is at [`benchmarks/k6/load-test.js`](benchmarks/k6/load-test.js).
+
+### How to generate real results
+
+```bash
+# 1. Install k6: https://k6.io/docs/getting-started/installation/
+# 2. Set your live API Gateway URL
+export TARGET_URL="https://<api-gateway-id>.execute-api.ap-south-1.amazonaws.com"
+
+# 3. Run the load test
+k6 run --env TARGET_URL=$TARGET_URL benchmarks/k6/load-test.js
+
+# 4. Export raw results
+k6 run --env TARGET_URL=$TARGET_URL --out json=benchmarks/k6/results.json benchmarks/k6/load-test.js
+```
+
+The raw results file (`benchmarks/k6/results.json`) in this repository contains a placeholder template showing the expected JSON schema. It will be replaced with real output once the load test is run against a live deployment.
+
+---
+
+## 3. Why Not Include Fabricated Numbers?
+
+This project explicitly avoids presenting fabricated benchmark numbers as real measurements. The architectural patterns implemented here (Transactional Outbox, CQRS, DynamoDB single-table event store, EventBridge native targets) are well-understood in the industry with documented latency profiles.
+
+If you are evaluating this project and want to verify latency claims, deploy the stack and run the k6 script above.

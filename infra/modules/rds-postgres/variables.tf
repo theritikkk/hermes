@@ -1,17 +1,17 @@
-variable "identifier" { 
-  type = string 
+variable "identifier" {
+  type = string
 }
 
-variable "vpc_id" { 
-  type = string 
+variable "vpc_id" {
+  type = string
 }
 
-variable "subnet_ids" { 
-  type = list(string) 
+variable "subnet_ids" {
+  type = list(string)
 }
 
-variable "allowed_security_group_ids" { 
-  type = list(string) 
+variable "allowed_security_group_ids" {
+  type = list(string)
 }
 
 variable "instance_class" {

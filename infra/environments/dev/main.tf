@@ -452,8 +452,8 @@ module "execution_projection_lambda" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["dynamodb:UpdateItem", "dynamodb:PutItem"]
+        Effect = "Allow"
+        Action = ["dynamodb:UpdateItem", "dynamodb:PutItem"]
         Resource = [
           module.execution_read_model.table_arn,
           module.workflow_read_model.table_arn,
@@ -776,8 +776,8 @@ module "query_api_lambda" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["dynamodb:GetItem", "dynamodb:Query"]
+        Effect = "Allow"
+        Action = ["dynamodb:GetItem", "dynamodb:Query"]
         Resource = [
           module.execution_read_model.table_arn,
           module.workflow_read_model.table_arn,

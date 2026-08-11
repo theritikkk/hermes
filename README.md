@@ -79,7 +79,7 @@ Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit archit
 ```bash
 npm test
 ```
-*Executes 21 unit test cases across all workspace packages via Node's native test runner in ~1.1s.*
+*Executes 38 unit test cases across all workspace packages via Node's native test runner in ~1.2s.*
 
 ### 2. Interactive Developer CLI
 ```bash
@@ -121,23 +121,24 @@ Refer to [`DEMO.md`](DEMO.md) for a structured 10–15 minute step-by-step prese
 
 ---
 
-## 📊 Benchmarks & Verifiable Evidence
+## 📊 Load Testing
 
-All benchmark claims are backed by verifiable scripts and raw evidence in the repository:
+The k6 load test script is ready to run against a live deployment:
 
-- **k6 Load Test Script**: [`benchmarks/k6/load-test.js`](benchmarks/k6/load-test.js)
-- **Raw Metric Output**: [`benchmarks/k6/results.json`](benchmarks/k6/results.json)
-- **Benchmark Summary**: [`benchmarks/k6/summary.md`](benchmarks/k6/summary.md)
+- **Load Test Script**: [`benchmarks/k6/load-test.js`](benchmarks/k6/load-test.js) — ramps 0 → 50 VUs over 3 minutes
+- **How to run**: `export TARGET_URL=<api-gateway-url> && k6 run benchmarks/k6/load-test.js`
+- **Evidence**: [`benchmarks/k6/results.json`](benchmarks/k6/results.json) will be populated after a live run
 
-### Empirical Latency Profile (ap-south-1)
+### Target SLA Profile (ap-south-1)
 
-| Operation / Path | Target SLA | Measured Mean | p95 Latency | p99 Latency |
-|---|---|---|---|---|
-| **`POST /assets` Ingestion** | < 200 ms | **145.2 ms** | **182.4 ms** | **230.1 ms** |
-| **Outbox Stream Propagation** | < 100 ms | **42.0 ms** | **68.0 ms** | **95.0 ms** |
-| **EventBridge → Step Functions Trigger** | < 50 ms | **18.0 ms** | **29.0 ms** | **45.0 ms** |
-| **Full Workflow End-to-End** | < 2,000 ms | **1,120.0 ms** | **1,450.0 ms** | **1,890.0 ms** |
-| **`GET /executions/{id}` CQRS Query** | < 50 ms | **12.0 ms** | **19.0 ms** | **28.0 ms** |
+| Operation / Path | Target SLA |
+|---|---|
+| **`POST /assets` Ingestion** | p99 < 500 ms |
+| **`GET /executions/{id}` CQRS Query** | p99 < 50 ms |
+| **Full Workflow End-to-End** | p99 < 3,000 ms |
+| **Error Rate (5xx)** | < 0.1% |
+
+> These are engineering SLA targets. Run the k6 script against your deployment to generate real measured results.
 
 ---
 

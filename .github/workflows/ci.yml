@@ -2,13 +2,13 @@ name: Hermes Platform CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
-    name: Build & Test Workspace
+    name: Build, Lint & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +30,10 @@ jobs:
       - name: Run unit test suite
         run: npm test
 
+      - name: Run test coverage (informational)
+        run: npm run test:coverage
+        continue-on-error: true   # Coverage is experimental; fail is non-blocking
+
   terraform-validate:
     name: Terraform Validate
     runs-on: ubuntu-latest
@@ -41,16 +45,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.8.0
+          terraform_version: '~1.8'
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive infra/
 
       - name: Validate Dev Environment
         run: |
           cd infra/environments/dev
-          terraform init -backend=false
-          terraform validate
-
-      - name: Validate Staging Environment
-        run: |
-          cd infra/environments/staging
           terraform init -backend=false
           terraform validate

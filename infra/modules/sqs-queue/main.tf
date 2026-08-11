@@ -1,9 +1,9 @@
 # Dead Letter Queue
 resource "aws_sqs_queue" "dlq" {
-  name                       = "${var.name}-dlq"
-  message_retention_seconds  = var.dlq_retention_seconds
-  kms_master_key_id          = var.kms_key_id
-  
+  name                      = "${var.name}-dlq"
+  message_retention_seconds = var.dlq_retention_seconds
+  kms_master_key_id         = var.kms_key_id
+
   tags = var.tags
 }
 
@@ -14,12 +14,12 @@ resource "aws_sqs_queue" "this" {
   message_retention_seconds  = var.message_retention_seconds
   receive_wait_time_seconds  = var.receive_wait_time_seconds
   kms_master_key_id          = var.kms_key_id
-  
+
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.dlq.arn
     maxReceiveCount     = var.max_receive_count
   })
-  
+
   tags = var.tags
 }
 

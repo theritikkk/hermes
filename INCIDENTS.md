@@ -1,6 +1,8 @@
 # Hermes — Incident Post-Mortems & Root Cause Analyses (RCA)
 
-This document contains real-world incident post-mortems and root-cause analyses from production & load operations on Hermes. These write-ups illustrate system debugging, resilience engineering, and architectural remediation for senior distributed systems interviews.
+This document contains post-mortem write-ups documenting architectural failure modes discovered during development, integration testing, and infrastructure hardening. These write-ups illustrate system debugging, resilience engineering, and architectural remediation — the same format used in production engineering teams.
+
+> **Note**: These post-mortems represent failure modes that were identified through code analysis, integration testing, and infrastructure review — not fabricated production outages. The resolutions described reflect real code changes made in this repository.
 
 ---
 
@@ -8,7 +10,7 @@ This document contains real-world incident post-mortems and root-cause analyses 
 
 | Incident ID | Severity | Summary | Root Cause |
 |---|---|---|---|
-| **INC-2026-01** | SEV-1 | Outbox Event Delivery Stagnation during Traffic Spike | SQS Batch Size & Concurrency Contention |
+| **INC-2026-01** | SEV-1 | Outbox Event Delivery Stagnation under Load | SQS Batch Size & Concurrency Contention |
 | **INC-2026-02** | SEV-2 | Out-of-Order Event Projection on Aggregate State | EventBridge Asynchronous Delivery Race Condition |
 | **INC-2026-03** | SEV-3 | KMS Throttling Exception on DynamoDB Streams | Missing KMS Batch Data Key Caching |
 
@@ -17,12 +19,13 @@ This document contains real-world incident post-mortems and root-cause analyses 
 ## Incident INC-2026-01: Outbox Event Delivery Stagnation
 
 ### Summary
-During a 500 VU concurrency load test, event publishing lag between DynamoDB event store writes and EventBridge event emission grew from 50ms to 4.2 minutes.
+During integration testing, event publishing lag between DynamoDB event store writes and EventBridge event emission grew significantly under concurrent load.
 
 ### Root Cause Analysis (RCA)
-- **Trigger**: Sudden burst of 250 req/sec writing `AssetRegistered` and `WorkflowExecutionStarted` events to `event-store`.
+- **Trigger**: Burst of concurrent writes creating `AssetRegistered` and `WorkflowExecutionStarted` events.
 - **Mechanism**: The `outbox-publisher` SQS trigger was configured with `batch_size = 1` and `maximum_concurrency = 5`. SQS messages accumulated faster than Lambda execution concurrency permitted, causing queue backlog.
-- **Impact**: Read models lagged behind command execution, though no data was lost.
+- **Impact**: Read models lagged behind command execution, though no data was lost (guaranteed by Transactional Outbox pattern).
+
 
 ### Resolution & Prevention
 1. Updated `infra/modules/lambda-function/main.tf` SQS event source mapping `batch_size` from `1` to `10`.

@@ -1,0 +1,56 @@
+name: Hermes Platform CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test:
+    name: Build & Test Workspace
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript build across workspaces
+        run: npm run build
+
+      - name: Run unit test suite
+        run: npm test
+
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Validate Dev Environment
+        run: |
+          cd infra/environments/dev
+          terraform init -backend=false
+          terraform validate
+
+      - name: Validate Staging Environment
+        run: |
+          cd infra/environments/staging
+          terraform init -backend=false
+          terraform validate

@@ -1,3 +1,40 @@
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "dlq" {
+  count = var.dlq_arn != null ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    actions   = ["sqs:SendMessage"]
+    resources = [var.dlq_arn]
+  }
+}
+
+data "aws_iam_policy_document" "sqs_trigger" {
+  count = (var.enable_sqs_trigger && var.sqs_trigger_arn != null) ? 1 : 0
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ChangeMessageVisibility"
+    ]
+    resources = [var.sqs_trigger_arn]
+  }
+}
+
 resource "aws_cloudwatch_log_group" "this" {
   name              = "/aws/lambda/${var.function_name}"
   retention_in_days = 30
@@ -5,21 +42,19 @@ resource "aws_cloudwatch_log_group" "this" {
 }
 
 resource "aws_iam_role" "this" {
-  name = "${var.function_name}-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
-  tags = var.tags
+  name               = "${var.function_name}-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "basic" {
   role       = aws_iam_role.this.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "xray" {
+  role       = aws_iam_role.this.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
 }
 
 resource "aws_iam_role_policy" "custom" {
@@ -30,38 +65,17 @@ resource "aws_iam_role_policy" "custom" {
 }
 
 resource "aws_iam_role_policy" "dlq" {
-  count = var.dlq_arn != null ? 1 : 0
-  name  = "${var.function_name}-dlq-policy"
-  role  = aws_iam_role.this.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = "sqs:SendMessage"
-      Resource = var.dlq_arn
-    }]
-  })
+  count  = var.dlq_arn != null ? 1 : 0
+  name   = "${var.function_name}-dlq-policy"
+  role   = aws_iam_role.this.id
+  policy = data.aws_iam_policy_document.dlq[0].json
 }
 
 resource "aws_iam_role_policy" "sqs_trigger" {
-  count = (var.enable_sqs_trigger && var.sqs_trigger_arn != null) ? 1 : 0
-  name  = "${var.function_name}-sqs-trigger-policy"
-  role  = aws_iam_role.this.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Action = [
-        "sqs:ReceiveMessage",
-        "sqs:DeleteMessage",
-        "sqs:GetQueueAttributes",
-        "sqs:ChangeMessageVisibility"
-      ]
-      Resource = var.sqs_trigger_arn
-    }]
-  })
+  count  = (var.enable_sqs_trigger && var.sqs_trigger_arn != null) ? 1 : 0
+  name   = "${var.function_name}-sqs-trigger-policy"
+  role   = aws_iam_role.this.id
+  policy = data.aws_iam_policy_document.sqs_trigger[0].json
 }
 
 resource "aws_lambda_function" "this" {

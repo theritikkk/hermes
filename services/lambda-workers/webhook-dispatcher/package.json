@@ -3,16 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "main": "dist/handler.js",
-  "scripts": { "build": "tsc" },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test src/**/*.test.ts"
+  },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.637.0",
-    "@aws-sdk/lib-dynamodb": "^3.637.0",
+    "@aws-sdk/client-ssm": "^3.637.0",
     "@hermes/domain": "*",
     "@hermes/observability": "*"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/aws-lambda": "^8.10.143",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   }
 }

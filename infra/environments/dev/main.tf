@@ -23,6 +23,11 @@ variable "image_tag" {
   type    = string
   default = "latest"
 }
+variable "enable_jwt_authorizer" {
+  type        = bool
+  default     = false
+  description = "Whether to attach Cognito JWT authorizer to API Gateway routes"
+}
 
 locals {
   prefix = "${var.project}-${var.environment}"
@@ -68,7 +73,7 @@ module "event_store" {
   tags = local.tags
 }
 
-# ── Execution Read Model ───────────────────────────────────
+# ── CQRS Read Models ───────────────────────────────────────
 module "execution_read_model" {
   source      = "../../modules/dynamodb-table"
   name        = "${local.prefix}-execution-read-model"
@@ -78,6 +83,57 @@ module "execution_read_model" {
   environment = var.environment
   tags        = local.tags
 }
+
+module "workflow_read_model" {
+  source      = "../../modules/dynamodb-table"
+  name        = "${local.prefix}-workflow-read-model"
+  hash_key    = "PK"
+  range_key   = "SK"
+  kms_key_arn = module.kms.key_arn
+  environment = var.environment
+  tags        = local.tags
+}
+
+module "asset_read_model" {
+  source      = "../../modules/dynamodb-table"
+  name        = "${local.prefix}-asset-read-model"
+  hash_key    = "PK"
+  range_key   = "SK"
+  kms_key_arn = module.kms.key_arn
+  environment = var.environment
+  tags        = local.tags
+}
+
+module "tenant_read_model" {
+  source      = "../../modules/dynamodb-table"
+  name        = "${local.prefix}-tenant-read-model"
+  hash_key    = "PK"
+  range_key   = "SK"
+  kms_key_arn = module.kms.key_arn
+  environment = var.environment
+  tags        = local.tags
+}
+
+module "metrics_read_model" {
+  source      = "../../modules/dynamodb-table"
+  name        = "${local.prefix}-metrics-read-model"
+  hash_key    = "PK"
+  range_key   = "SK"
+  kms_key_arn = module.kms.key_arn
+  environment = var.environment
+  tags        = local.tags
+}
+
+module "audit_read_model" {
+  source      = "../../modules/dynamodb-table"
+  name        = "${local.prefix}-audit-read-model"
+  hash_key    = "PK"
+  range_key   = "SK"
+  kms_key_arn = module.kms.key_arn
+  environment = var.environment
+  tags        = local.tags
+}
+
 
 # ── EventBridge ────────────────────────────────────────────
 module "event_bus" {
@@ -132,6 +188,150 @@ module "alarms" {
   tags = local.tags
 }
 
+# ── Phase 10: AWS WAFv2 Web ACL for API Gateway Production Security ──
+resource "aws_wafv2_web_acl" "api" {
+  name        = "${local.prefix}-api-waf"
+  description = "Rate limiting and common vulnerability protection rules for Hermes HTTP API"
+  scope       = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${local.prefix}-waf"
+    sampled_requests_enabled   = true
+  }
+
+  rule {
+    name     = "RateLimitPerIP"
+    priority = 1
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit              = 1000
+        aggregate_key_type = "IP"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "RateLimitPerIP"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 2
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWSManagedRulesCommonRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  tags = local.tags
+}
+resource "aws_cloudwatch_dashboard" "observability" {
+  dashboard_name = "${local.prefix}-observability-dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["AWS/ApiGateway", "4RR", "ApiId", module.http_api.api_id, { stat = "Sum", label = "4xx Errors" }],
+            ["AWS/ApiGateway", "5RR", "ApiId", module.http_api.api_id, { stat = "Sum", label = "5xx Errors" }],
+            ["AWS/ApiGateway", "Count", "ApiId", module.http_api.api_id, { stat = "Sum", label = "Total Requests" }]
+          ]
+          period = 300
+          region = data.aws_region.current.name
+          title  = "HTTP API Request & Error Volume"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["AWS/ApiGateway", "Latency", "ApiId", module.http_api.api_id, { stat = "Average", label = "Avg Latency (ms)" }],
+            ["AWS/ApiGateway", "IntegrationLatency", "ApiId", module.http_api.api_id, { stat = "Average", label = "Avg Integration Latency (ms)" }]
+          ]
+          period = 300
+          region = data.aws_region.current.name
+          title  = "HTTP API Gateway Latency"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["AWS/States", "ExecutionsStarted", "StateMachineArn", module.workflow_registry.workflow_arns["document-pipeline-v1"], { stat = "Sum", label = "Started" }],
+            ["AWS/States", "ExecutionsSucceeded", "StateMachineArn", module.workflow_registry.workflow_arns["document-pipeline-v1"], { stat = "Sum", label = "Succeeded" }],
+            ["AWS/States", "ExecutionsFailed", "StateMachineArn", module.workflow_registry.workflow_arns["document-pipeline-v1"], { stat = "Sum", label = "Failed" }]
+          ]
+          period = 300
+          region = data.aws_region.current.name
+          title  = "Step Functions Workflow Executions"
+          view   = "timeSeries"
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          metrics = [
+            ["Hermes/Operations", "DLQMessageCount", { stat = "Sum", label = "DLQ Poison Messages" }],
+            ["Hermes/Outbox", "RepublishedEventCount", { stat = "Sum", label = "Stale Outbox Republished" }],
+            ["Hermes/Usage", "UsageEventProcessed", { stat = "Sum", label = "Usage Events Processed" }],
+            ["Hermes/OpenSearch", "DocumentsIndexed", { stat = "Sum", label = "OpenSearch Indexed" }],
+            ["Hermes/Webhooks", "WebhookDelivered", { stat = "Sum", label = "Webhooks Delivered" }]
+          ]
+          period = 300
+          region = data.aws_region.current.name
+          title  = "Hermes Custom EMF Operational Metrics"
+          view   = "timeSeries"
+        }
+      }
+    ]
+  })
+}
+
 # ── Outputs ────────────────────────────────────────────────
 output "event_store_table" { value = module.event_store.table_name }
 output "event_store_stream_arn" { value = module.event_store.stream_arn }
@@ -180,8 +380,8 @@ module "outbox_publisher_lambda" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["dynamodb:PutItem", "dynamodb:Query"]
+        Effect = "Allow"
+        Action = ["dynamodb:PutItem", "dynamodb:Query"]
         Resource = [
           module.event_store.table_arn,
           "${module.event_store.table_arn}/index/*"
@@ -196,6 +396,11 @@ module "outbox_publisher_lambda" {
         Effect   = "Allow"
         Action   = "sqs:SendMessage"
         Resource = module.outbox_queue.dlq_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
       }
     ]
   })
@@ -214,29 +419,56 @@ module "execution_projection_lambda" {
   dlq_arn       = module.outbox_queue.dlq_arn # reuse outbox DLQ for all workers in dev
 
   eventbridge_pattern = jsonencode({
-    source = ["hermes.command-api"]
+    source = ["hermes.command-api", "hermes.outbox-publisher", "hermes.outbox-republisher"]
     "detail-type" = [
+      "AssetRegistered",
       "WorkflowExecutionStarted",
       "StepCompleted",
       "StepFailed",
       "WorkflowExecutionCompleted",
-      "WorkflowExecutionFailed"
+      "WorkflowExecutionFailed",
+      "RetryScheduled",
+      "SnapshotCreated",
+      "WebhookDelivered",
+      "NotificationSent",
+      "ExecutionCancelled",
+      "ExecutionTimedOut",
+      "ExecutionRetried"
     ]
   })
   event_bus_name = module.event_bus.bus_name
 
   environment_variables = {
     EXECUTION_READ_MODEL_TABLE = module.execution_read_model.table_name
+    WORKFLOW_READ_MODEL_TABLE  = module.workflow_read_model.table_name
+    ASSET_READ_MODEL_TABLE     = module.asset_read_model.table_name
+    TENANT_READ_MODEL_TABLE    = module.tenant_read_model.table_name
+    METRICS_READ_MODEL_TABLE   = module.metrics_read_model.table_name
+    AUDIT_READ_MODEL_TABLE     = module.audit_read_model.table_name
     SERVICE_NAME               = "execution-projection"
   }
 
   policy_json = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["dynamodb:UpdateItem"]
-      Resource = module.execution_read_model.table_arn
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:UpdateItem", "dynamodb:PutItem"]
+        Resource = [
+          module.execution_read_model.table_arn,
+          module.workflow_read_model.table_arn,
+          module.asset_read_model.table_arn,
+          module.tenant_read_model.table_arn,
+          module.metrics_read_model.table_arn,
+          module.audit_read_model.table_arn
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
+      }
+    ]
   })
 
   tags = local.tags
@@ -260,11 +492,18 @@ module "snapshot_trigger_lambda" {
 
   policy_json = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["dynamodb:Query", "dynamodb:PutItem"]
-      Resource = module.event_store.table_arn
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:Query", "dynamodb:PutItem"]
+        Resource = module.event_store.table_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
+      }
+    ]
   })
 
   tags = local.tags
@@ -285,17 +524,30 @@ module "dlq_handler_lambda" {
   sqs_batch_size     = 1
 
   environment_variables = {
-    DLQ_NAME     = module.outbox_queue.dlq_name
-    SERVICE_NAME = "dlq-handler"
+    DLQ_NAME          = module.outbox_queue.dlq_name
+    EVENT_STORE_TABLE = module.event_store.table_name
+    SERVICE_NAME      = "dlq-handler"
   }
 
   policy_json = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
-      Resource = module.outbox_queue.dlq_arn
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+        Resource = module.outbox_queue.dlq_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem"]
+        Resource = module.event_store.table_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
+      }
+    ]
   })
 
   tags = local.tags
@@ -333,6 +585,11 @@ module "validate_worker_lambda" {
         Effect   = "Allow"
         Action   = "events:PutEvents"
         Resource = "arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:event-bus/${module.event_bus.bus_name}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
       }
     ]
   })
@@ -365,6 +622,11 @@ module "ocr_worker_lambda" {
         Effect   = "Allow"
         Action   = "events:PutEvents"
         Resource = "arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:event-bus/${module.event_bus.bus_name}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
       }
     ]
   })
@@ -397,6 +659,11 @@ module "classify_worker_lambda" {
         Effect   = "Allow"
         Action   = "events:PutEvents"
         Resource = "arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:event-bus/${module.event_bus.bus_name}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
       }
     ]
   })
@@ -462,20 +729,26 @@ module "command_api_lambda" {
       },
 
       {
-        Effect = "Allow"
-        Action = "events:PutEvents"
+        Effect   = "Allow"
+        Action   = "events:PutEvents"
         Resource = "arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:event-bus/${module.event_bus.bus_name}"
       },
 
       {
-        Effect = "Allow"
-        Action = "sqs:SendMessage"
+        Effect   = "Allow"
+        Action   = "sqs:SendMessage"
         Resource = module.outbox_queue.dlq_arn
+      },
+
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
       }
 
     ]
   })
-  
+
   tags = local.tags
 }
 
@@ -491,16 +764,36 @@ module "query_api_lambda" {
 
   environment_variables = {
     EXECUTION_READ_MODEL_TABLE = module.execution_read_model.table_name
+    WORKFLOW_READ_MODEL_TABLE  = module.workflow_read_model.table_name
+    ASSET_READ_MODEL_TABLE     = module.asset_read_model.table_name
+    TENANT_READ_MODEL_TABLE    = module.tenant_read_model.table_name
+    METRICS_READ_MODEL_TABLE   = module.metrics_read_model.table_name
+    AUDIT_READ_MODEL_TABLE     = module.audit_read_model.table_name
     SERVICE_NAME               = "query-api"
   }
 
   policy_json = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["dynamodb:GetItem"]
-      Resource = module.execution_read_model.table_arn
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:GetItem", "dynamodb:Query"]
+        Resource = [
+          module.execution_read_model.table_arn,
+          module.workflow_read_model.table_arn,
+          module.asset_read_model.table_arn,
+          module.tenant_read_model.table_arn,
+          module.metrics_read_model.table_arn,
+          module.audit_read_model.table_arn,
+          "${module.audit_read_model.table_arn}/index/*"
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = module.kms.key_arn
+      }
+    ]
   })
 
   tags = local.tags
@@ -512,13 +805,21 @@ module "query_api_lambda" {
 # Cognito authorizer onto these routes is the very next thing to do before
 # this goes anywhere near real traffic.
 module "http_api" {
-  source = "../../modules/http-api"
-  name   = "${local.prefix}-api"
+  source                = "../../modules/http-api"
+  name                  = "${local.prefix}-api"
+  enable_jwt_authorizer = var.enable_jwt_authorizer
+  cognito_issuer_url    = module.cognito.issuer_url
+  cognito_client_ids    = [module.cognito.client_id]
 
   routes = {
-    "POST /assets"                  = module.command_api_lambda.function_arn
-    "POST /step-results"            = module.command_api_lambda.function_arn
-    "GET /executions/{executionId}" = module.query_api_lambda.function_arn
+    "POST /assets"                    = module.command_api_lambda.function_arn
+    "POST /step-results"              = module.command_api_lambda.function_arn
+    "GET /executions/{executionId}"   = module.query_api_lambda.function_arn
+    "GET /assets/{assetId}"           = module.query_api_lambda.function_arn
+    "GET /workflows/{workflowName}"   = module.query_api_lambda.function_arn
+    "GET /tenants/{tenantId}"         = module.query_api_lambda.function_arn
+    "GET /tenants/{tenantId}/metrics" = module.query_api_lambda.function_arn
+    "GET /tenants/{tenantId}/audit"   = module.query_api_lambda.function_arn
   }
 
   tags = local.tags
@@ -584,10 +885,20 @@ module "opensearch_projection_lambda" {
   dlq_arn       = module.outbox_queue.dlq_arn
 
   eventbridge_pattern = jsonencode({
-    source = ["hermes.command-api"]
+    source = ["hermes.command-api", "hermes.outbox-publisher", "hermes.outbox-republisher"]
     "detail-type" = [
+      "WorkflowExecutionStarted",
       "StepCompleted",
-      "WorkflowExecutionCompleted"
+      "StepFailed",
+      "WorkflowExecutionCompleted",
+      "WorkflowExecutionFailed",
+      "RetryScheduled",
+      "SnapshotCreated",
+      "WebhookDelivered",
+      "NotificationSent",
+      "ExecutionCancelled",
+      "ExecutionTimedOut",
+      "ExecutionRetried"
     ]
   })
   event_bus_name = module.event_bus.bus_name
@@ -612,17 +923,44 @@ module "usage_projection_lambda" {
   dlq_arn       = module.outbox_queue.dlq_arn
 
   eventbridge_pattern = jsonencode({
-    source = ["hermes.command-api"]
+    source = ["hermes.command-api", "hermes.outbox-publisher", "hermes.outbox-republisher"]
     "detail-type" = [
+      "WorkflowExecutionStarted",
       "StepCompleted",
-      "WorkflowExecutionCompleted"
+      "StepFailed",
+      "WorkflowExecutionCompleted",
+      "WorkflowExecutionFailed",
+      "RetryScheduled",
+      "SnapshotCreated",
+      "WebhookDelivered",
+      "NotificationSent",
+      "ExecutionCancelled",
+      "ExecutionTimedOut",
+      "ExecutionRetried"
     ]
   })
   event_bus_name = module.event_bus.bus_name
 
   environment_variables = {
-    SERVICE_NAME = "usage-projection"
+    EXECUTION_READ_MODEL_TABLE = module.execution_read_model.table_name
+    SERVICE_NAME               = "usage-projection"
   }
+
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:UpdateItem"]
+        Resource = module.execution_read_model.table_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
+      }
+    ]
+  })
 
   tags = local.tags
 }
@@ -648,8 +986,20 @@ module "webhook_dispatcher_lambda" {
   event_bus_name = module.event_bus.bus_name
 
   environment_variables = {
+    ENVIRONMENT  = var.environment
     SERVICE_NAME = "webhook-dispatcher"
   }
+
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["ssm:GetParameter"]
+        Resource = "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/hermes/${var.environment}/tenants/*"
+      }
+    ]
+  })
 
   tags = local.tags
 }
@@ -666,10 +1016,32 @@ module "outbox_republisher_lambda" {
   dlq_arn       = module.outbox_queue.dlq_arn
 
   environment_variables = {
-    EVENT_STORE_TABLE = module.event_store.table_name
-    EVENT_BUS_NAME    = module.event_bus.bus_name
-    SERVICE_NAME      = "outbox-republisher"
+    EVENT_STORE_TABLE       = module.event_store.table_name
+    EVENT_BUS_NAME          = module.event_bus.bus_name
+    STALE_THRESHOLD_MINUTES = "5"
+    SERVICE_NAME            = "outbox-republisher"
   }
+
+  policy_json = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:Scan", "dynamodb:UpdateItem"]
+        Resource = module.event_store.table_arn
+      },
+      {
+        Effect   = "Allow"
+        Action   = "events:PutEvents"
+        Resource = "arn:aws:events:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:event-bus/${module.event_bus.bus_name}"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+        Resource = module.kms.key_arn
+      }
+    ]
+  })
 
   tags = local.tags
 }

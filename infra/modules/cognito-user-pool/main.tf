@@ -41,6 +41,24 @@ resource "aws_cognito_user_pool" "this" {
   tags              = var.tags
 }
 
+resource "aws_cognito_user_group" "admin" {
+  name         = "Admin"
+  user_pool_id = aws_cognito_user_pool.this.id
+  description  = "Administrator group with full cross-tenant management access"
+}
+
+resource "aws_cognito_user_group" "user" {
+  name         = "User"
+  user_pool_id = aws_cognito_user_pool.this.id
+  description  = "Standard tenant user group"
+}
+
+resource "aws_cognito_user_group" "service" {
+  name         = "Service"
+  user_pool_id = aws_cognito_user_pool.this.id
+  description  = "Machine-to-machine service integration group"
+}
+
 resource "aws_cognito_user_pool_client" "this" {
   name         = "${var.name}-client"
   user_pool_id = aws_cognito_user_pool.this.id
@@ -48,6 +66,7 @@ resource "aws_cognito_user_pool_client" "this" {
   explicit_auth_flows = [
     "ALLOW_USER_PASSWORD_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
   ]
 
   access_token_validity  = 1

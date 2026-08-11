@@ -17,14 +17,21 @@ bundle() {
   cp "$dir/package.json" "$out/"
   echo "Bundling $name..."
   node "$ROOT/scripts/copy-deps.js" "$dir/package.json" "$ROOT/node_modules" "$out/node_modules"
-  (cd "$BUILD" && zip -rq "$name.zip" "$name")
+  (cd "$BUILD/$name" && zip -rq "../$name.zip" .)
 }
 
-bundle command-api "$ROOT/services/command-api"
-bundle query-api "$ROOT/services/query-api"
-bundle validate-worker "$ROOT/services/activity-workers/validate-worker"
-bundle ocr-worker "$ROOT/services/activity-workers/ocr-worker"
-bundle classify-worker "$ROOT/services/activity-workers/classify-worker"
+bundle command-api          "$ROOT/services/command-api"
+bundle query-api            "$ROOT/services/query-api"
+bundle validate-worker      "$ROOT/services/activity-workers/validate-worker"
+bundle ocr-worker           "$ROOT/services/activity-workers/ocr-worker"
+bundle classify-worker      "$ROOT/services/activity-workers/classify-worker"
 bundle execution-projection "$ROOT/services/event-projections/execution-projection"
+bundle usage-projection     "$ROOT/services/event-projections/usage-projection"
+bundle opensearch-projection "$ROOT/services/event-projections/opensearch-projection"
+bundle outbox-publisher     "$ROOT/services/lambda-workers/outbox-publisher"
+bundle snapshot-trigger     "$ROOT/services/lambda-workers/snapshot-trigger"
+bundle dlq-handler          "$ROOT/services/lambda-workers/dlq-handler"
+bundle webhook-dispatcher   "$ROOT/services/lambda-workers/webhook-dispatcher"
+bundle outbox-republisher   "$ROOT/services/lambda-workers/outbox-republisher"
 
 echo "Lambda bundles written to $BUILD"

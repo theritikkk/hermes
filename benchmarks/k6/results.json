@@ -1,0 +1,25 @@
+{
+  "metrics": {
+    "http_req_duration": {
+      "avg": 145.2,
+      "min": 85.1,
+      "med": 132.4,
+      "max": 412.0,
+      "p90": 171.8,
+      "p95": 182.4,
+      "p99": 230.1
+    },
+    "http_req_failed": {
+      "passes": 0,
+      "fails": 150000,
+      "value": 0.0
+    },
+    "http_reqs": {
+      "count": 150000,
+      "rate": 285.7
+    },
+    "vus_max": {
+      "value": 500
+    }
+  }
+}

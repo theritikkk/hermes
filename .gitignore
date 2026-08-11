@@ -14,6 +14,7 @@ dist/
 
 *.zip
 coverage/
+infra/.build/
 .DS_Store
 
 # Interview preparation notes (local only)

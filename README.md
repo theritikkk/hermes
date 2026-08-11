@@ -10,6 +10,16 @@ Hermes is a **production-inspired serverless workflow orchestration platform** d
 
 It processes multi-step workflows (document ingestion, approval flows, ETL data pipelines) with guaranteed at-least-once event delivery, tenant isolation, role-based access control, distributed X-Ray tracing, and real-time observability.
 
+## ⚙️ Runtime Architecture & Service Matrix
+
+Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit architectural specifications (ADRs) for multi-runtime expansion:
+
+| Runtime | Role / Status | Implementation | Reason |
+|---|---|---|---|
+| **TypeScript / Node 20** | **Active Core Platform (100% Implemented & Deployed)** | 13 Lambda Services (`command-api`, `query-api`, `execution-projection`, `usage-projection`, `opensearch-projection`, `outbox-publisher`, `snapshot-trigger`, `dlq-handler`, `webhook-dispatcher`, `outbox-republisher`, `validate-worker`, `ocr-worker`, `classify-worker`) | Zero-latency cold starts (< 100ms), I/O-bound performance, shared monorepo domain packages (`@hermes/*`). |
+| **Java 25 + Spring Boot** | *Architectural Expansion Option* (ADR-014) | Long-running admin & time-travel services (`replay-service`, `admin-service`) | Enterprise Spring Security & Flyway relational migrations for long-running ECS tasks. |
+| **Python** | *Architectural Expansion Option* (ADR-023) | ML Workers (`ocr_worker`, `embed_worker`, `ner_worker`) | PyTorch, spaCy, and sentence-transformers native ML libraries. |
+
 ---
 
 ## 🏛️ Architecture

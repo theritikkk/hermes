@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: hermes-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SERVICES=dynamodb,sqs,events,s3,kms,stepfunctions
+      - AWS_DEFAULT_REGION=ap-south-1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

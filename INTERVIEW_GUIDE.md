@@ -7,7 +7,7 @@ This guide equips you to defend every architectural choice in Hermes during tech
 ## ⏱️ Elevator Pitches
 
 ### 30-Second Pitch (Elevator / Quick Introduction)
-> "Hermes is a production-inspired serverless workflow orchestration platform built on AWS. It handles multi-step processes like document pipelines and ETL jobs using Event Sourcing, CQRS, and the Transactional Outbox pattern. By combining DynamoDB, EventBridge, and Step Functions, it guarantees at-least-once event delivery with zero dual-write data loss and sub-20ms read query speeds."
+> "Hermes is a production-inspired serverless workflow orchestration platform built on AWS. It handles multi-step processes like document pipelines and ETL jobs using Event Sourcing, CQRS, and the Transactional Outbox pattern. By combining DynamoDB, EventBridge, and Step Functions, it guarantees at-least-once event delivery with zero dual-write data loss and low-latency O(1) read queries from pre-projected CQRS read models."
 
 ### 2-Minute Pitch (Recruiter / Hiring Manager)
 > "In event-driven serverless architectures, a common flaw is dual-write vulnerability—writing state to a database and inline publishing to an event bus can cause data loss if either step fails. Hermes solves this by implementing the Transactional Outbox pattern: commands append events to a single-table DynamoDB event store atomically. An SQS stream consumer then reliably publishes them to EventBridge.

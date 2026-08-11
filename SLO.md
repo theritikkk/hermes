@@ -2,6 +2,8 @@
 
 This document defines the Service Level Indicators (SLIs), Service Level Objectives (SLOs), Error Budgets, and Burn Rate alerts for Hermes in accordance with Google SRE principles.
 
+> **Note**: These are engineering design targets, not measured uptime values from a live production deployment. They represent the SLOs you would commit to and instrument against when operating this system.
+
 ---
 
 ## 1. Core SLO Matrix

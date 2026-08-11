@@ -1,7 +1,7 @@
 # Hermes Platform — Architectural & Technical Reference
 
 > **Principal Engineer Reference Guide**
-> An event-sourced, CQRS-based workflow orchestration platform natively engineered on AWS (Java 21 + Spring Boot, Step Functions, EventBridge, DynamoDB, Aurora PostgreSQL, OpenSearch, Cognito, S3).
+> An event-sourced, CQRS-based workflow orchestration platform natively engineered on AWS (TypeScript + Node.js Lambdas, Java 25 + Spring Boot, Step Functions, EventBridge, DynamoDB, Aurora PostgreSQL, OpenSearch, Cognito, S3).
 
 ---
 
@@ -15,7 +15,7 @@ Hermes decouples state mutation from state observation through strict **Event So
                   └─────────────────────────────────────────────────────────┘
                                                │
                                                ▼
- Client  ───────► API Gateway ───────► command-api (Java 21 / ECS Fargate)
+ Client  ───────► API Gateway ───────► command-api (TypeScript / Lambda)
                                                │
                                                ▼
                                       DynamoDB Event Store
@@ -41,10 +41,10 @@ Hermes decouples state mutation from state observation through strict **Event So
                              (Per-version ASL)                            │
                                        │                                  ▼
                                Activity Workers                  DynamoDB Read Model
-                            (Python / Lambda Token)              (Current Execution State)
+                            (Node.js / Lambda Token)             (Current Execution State)
                                        │                                  │
                                        ▼                                  ▼
-                             POST /api/v1/step-results               query-api (Java 21)
+                              POST /api/v1/step-results               query-api (TypeScript / Lambda)
                                    (command-api)                          │
                                                                           ▼
                                                                      Dashboard / UI
@@ -77,20 +77,20 @@ The event store table (`hermes-dev-event-store`) uses a single-table layout supp
 - **Snapshot Acceleration**: Reads the latest snapshot (`SNAP#`) via [`SnapshotStore.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/replay-service/src/main/java/com/hermes/replay/infrastructure/eventstore/SnapshotStore.java) and resumes event stream loading from `snapshot.resumeFromSequence()`.
 - **Execution Delta**: Differentiates completed steps with valid outputs from modified steps requiring re-dispatch. Injects cached outputs into Step Functions `replayContext`.
 
-### Pillar 2: Saga Orchestration & Compensation (`services/command-api`)
-- **Coordinator**: [`SagaManager.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/command-api/src/main/java/com/hermes/command/domain/saga/SagaManager.java).
+### Pillar 2: Saga Orchestration & Compensation
+- **Coordinator**: Saga compensation logic is embedded in the command handling pipeline via `@hermes/command-handlers` (TypeScript) and orchestrated through Step Functions ASL catch/retry states.
 - **LIFO Execution**: Tracks completed forward steps and executes inverse compensation steps in reverse order (Last-In, First-Out).
 - **Idempotency**: Maintains an in-aggregate set of completed compensation steps to safeguard against duplicate rollback attempts under activity retries.
 
-### Pillar 3: Fluent Workflow SDK (`shared/sdk/typescript` & Java)
+### Pillar 3: Fluent Workflow SDK (`shared/sdk/typescript`)
 - **TypeScript DSL**: [`WorkflowBuilder`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/workflow.ts) programmatically constructs type-safe workflow definitions with retry policies, catch blocks, parallel branches, and saga configurations.
 - **ASL Compiler**: [`AslCompiler`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/workflow.ts) transforms the builder model into Amazon States Language (ASL) JSON ready for direct submission to the Step Functions `CreateStateMachine` API.
-- **Java Client**: [`HermesClient.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/command-api/src/main/java/com/hermes/command/sdk/HermesClient.java) zero-dependency Java 21 client utilizing JDK `HttpClient`.
+- **TypeScript Client**: [`client.ts`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/client.ts) zero-dependency, `fetch`-based `HermesClient` for starting executions, polling status, and calling replay endpoints.
 
 ### Pillar 4: Workflow & Event Versioning (`services/admin-service`)
 - **Version Registry**: [`WorkflowVersionRegistry.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/admin-service/src/main/java/com/hermes/admin/domain/WorkflowVersionRegistry.java) enforces a strict `DRAFT -> ACTIVE -> DEPRECATED` lifecycle.
 - **Version Pinning**: Executions are immutably bound to the `workflowVersion` active at trigger time.
-- **Schema Upcaster**: [`EventSchemaUpcaster.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/command-api/src/infrastructure/eventstore/EventSchemaUpcaster.java) applies a chain of pure payload transformations at read time to convert older event payloads (v1 -> v2 -> v3) transparently.
+- **Schema Upcaster**: Event schema upcasting is handled at read time in the `@hermes/event-store` TypeScript package and via JSON Schema definitions in `shared/event-schemas/`. A chain of pure payload transformations converts older event payloads (v1 -> v2 -> v3) transparently.
 
 ---
 
@@ -98,7 +98,8 @@ The event store table (`hermes-dev-event-store`) uses a single-table layout supp
 
 | Service | Role in Hermes | Rationale over Multi-Cloud / Generic Abstractions |
 |---|---|---|
-| **Java 21 + Spring Boot** | Core Command/Admin Services | Strong ecosystem for Cognito JWT validation, Micrometer CloudWatch export, and Spring Validation. Runs on ECS Fargate. |
+| **TypeScript + Node.js** | Command API, Query API, Lambda Workers, Activity Workers, Event Projections | Stateless, I/O-bound Lambda handlers with sub-100ms cold start. npm workspace shares `@hermes/*` domain packages. |
+| **Java 25 + Spring Boot** | Replay Service, Admin Service | Spring Security for Cognito JWT validation, Spring Data JPA + Flyway for PostgreSQL schema management, Micrometer CloudWatch export. Runs on ECS Fargate. |
 | **AWS Step Functions** | Process Manager | Serverless, visual, durable workflow execution engine. Manages state machine transitions without custom poller infrastructure. |
 | **AWS EventBridge** | Event Bus | Native integration backbone. Direct EventBridge-to-Step-Functions targets eliminate Lambda glue code. |
 | **Amazon DynamoDB** | Event Store & Read Model | Infinite auto-scaling write throughput under bursting activity completions with zero connection pool limits. |

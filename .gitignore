@@ -1,23 +1,36 @@
 node_modules/
 dist/
-*.js.map
-.env
-.env.*
+
+*.js.map*
+
+*.env*
+*.env.*
 !.env.example
+
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
+
 *.zip
 coverage/
 .DS_Store
 
-# Interview preparation notes — local only, never pushed
+# Interview preparation notes (local only)
 docs/interview-prep/
 
-# Java build output
+# Java
 **/target/
 *.class
 
-# AI Tools used 
+# AI tools
 .gemini
+
+# Terraform debug artifacts
+tf.log
+terraform.log
+provider.log
+graph.dot
+
+# Generic logs
+*.log

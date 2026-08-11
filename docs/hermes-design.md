@@ -286,28 +286,61 @@ Replay is **event-derived**, not reconstructed from CloudWatch logs.
 hermes/
 ├── docs/
 │   ├── hermes-design.md
+│   ├── ARCHITECTURE_SUMMARY.md
+│   ├── DIAGRAMS.md
+│   ├── INDEX.md
+│   ├── RUNBOOK.md
+│   ├── INTERVIEW_CHEAT_SHEET.md
 │   └── adr/
 ├── services/
-│   ├── command-api/
-│   ├── query-api/
-│   ├── workflow-engine/
+│   ├── command-api/          TypeScript Lambda — command processing
+│   ├── query-api/            TypeScript Lambda — read-only query surface
+│   ├── replay-service/       Java 25 + Spring Boot — replay engine (ECS)
+│   ├── admin-service/        Java 25 + Spring Boot — registry & tenants (ECS)
+│   ├── lambda-workers/
+│   │   ├── outbox-publisher/     DynamoDB Streams → EventBridge
+│   │   ├── outbox-republisher/   Republish failed events
+│   │   ├── snapshot-trigger/     Aggregate snapshots
+│   │   ├── dlq-handler/          DLQ processing
+│   │   └── webhook-dispatcher/   Webhook delivery
 │   ├── activity-workers/
 │   │   ├── validate-worker/
 │   │   ├── ocr-worker/
 │   │   └── classify-worker/
-│   └── event-projections/
-│       └── execution-projection/
+│   ├── event-projections/
+│   │   ├── execution-projection/
+│   │   ├── opensearch-projection/
+│   │   └── usage-projection/
+│   └── ai-workers/           Python — AI gateway, embed, NER
 ├── shared/
-│   ├── domain/                  # aggregates, commands, events
-│   ├── event-store/             # append, load stream
-│   └── observability/
+│   ├── domain/               event types, aggregate keys, commands
+│   ├── event-store/          DynamoDB event store client
+│   ├── command-handlers/     asset ingestion, step result handlers
+│   ├── observability/        structured JSON logger
+│   ├── event-schemas/        JSON Schema payload definitions
+│   ├── activity-runner/      generic activity runner
+│   └── sdk/
+│       └── typescript/       WorkflowBuilder, AslCompiler, CLI
 ├── workflows/
-│   ├── templates/               # built-in workflow ASL
-│   └── activities/              # activity metadata registry
+│   ├── templates/            Step Functions ASL definitions
+│   └── activities/           activity metadata registry
 ├── infra/
-│   ├── modules/
-│   └── environments/dev/
+│   ├── modules/              18 reusable Terraform modules
+│   └── environments/
+│       ├── dev/
+│       └── staging/
+├── web/
+│   └── dashboard.html        operator dashboard & replay visualizer
+├── scripts/
+│   ├── deploy-lambdas.sh
+│   ├── e2e-validation.ts
+│   ├── load-benchmark-suite.ts
+│   └── system-component-verifier.ts
 └── .github/workflows/
+    ├── app-ci.yml
+    ├── deploy-dev.yml
+    ├── infra-ci.yml
+    └── security-scan.yml
 ```
 
 ---

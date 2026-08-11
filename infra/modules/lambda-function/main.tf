@@ -29,6 +29,41 @@ resource "aws_iam_role_policy" "custom" {
   policy = var.policy_json
 }
 
+resource "aws_iam_role_policy" "dlq" {
+  count = var.dlq_arn != null ? 1 : 0
+  name  = "${var.function_name}-dlq-policy"
+  role  = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "sqs:SendMessage"
+      Resource = var.dlq_arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "sqs_trigger" {
+  count = (var.enable_sqs_trigger && var.sqs_trigger_arn != null) ? 1 : 0
+  name  = "${var.function_name}-sqs-trigger-policy"
+  role  = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:ChangeMessageVisibility"
+      ]
+      Resource = var.sqs_trigger_arn
+    }]
+  })
+}
+
 resource "aws_lambda_function" "this" {
   function_name    = var.function_name
   role             = aws_iam_role.this.arn
@@ -51,8 +86,15 @@ resource "aws_lambda_function" "this" {
     mode = "Active"
   }
 
-  tags       = var.tags
-  depends_on = [aws_cloudwatch_log_group.this]
+  tags = var.tags
+
+  depends_on = [
+    aws_cloudwatch_log_group.this,
+    aws_iam_role_policy_attachment.basic,
+    aws_iam_role_policy.custom,
+    aws_iam_role_policy.dlq,
+    aws_iam_role_policy.sqs_trigger,
+  ]
 }
 
 resource "aws_lambda_event_source_mapping" "sqs" {
@@ -64,7 +106,8 @@ resource "aws_lambda_event_source_mapping" "sqs" {
 
   depends_on = [
     aws_iam_role_policy_attachment.basic,
-    aws_iam_role_policy.custom
+    aws_iam_role_policy.custom,
+    aws_iam_role_policy.sqs_trigger,
   ]
 }
 

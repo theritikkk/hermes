@@ -10,7 +10,7 @@ This document contains Mermaid diagrams visualizing the execution mechanics, eve
 sequenceDiagram
     autonumber
     actor Client
-    participant API as Command API (ECS)
+    participant API as Command API (Lambda)
     participant ES as DynamoDB Event Store
     participant Stream as DynamoDB Streams
     participant SQS as Outbox SQS Queue

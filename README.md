@@ -135,8 +135,13 @@ All benchmark claims are backed by verifiable scripts and raw evidence in the re
 
 Hermes includes complete architectural defense and interview preparation material:
 
+- [**SLO.md**](SLO.md) — Service Level Objectives, SLIs, Error Budgets, and Burn Rate Alerts
+- [**THREAT_MODEL.md**](THREAT_MODEL.md) — STRIDE Threat Model & Security Vulnerability Defense Analysis
+- [**SCALING.md**](SCALING.md) — 10x, 100x, and 1000x Scaling Bottleneck Analysis & Remedies
+- [**CAPACITY_PLANNING.md**](CAPACITY_PLANNING.md) — Capacity planning & mathematical calculations for 1M Workflows/Day
+- [**SCHEMA_VERSIONING.md**](docs/SCHEMA_VERSIONING.md) — Event schema evolution (v1 → v2) & transparent upcaster migration strategy
 - [**COST_ESTIMATES.md**](COST_ESTIMATES.md) — Operational AWS cost breakdowns across Low, Mid, and High scale profiles
-- [**ARCHITECTURE.md**](ARCHITECTURE.md) — Detailed request flow diagrams, failure recovery flows & component mapping
+- [**ARCHITECTURE.md**](ARCHITECTURE.md) — Request flow diagrams, failure recovery flows & component mapping
 - [**RUNBOOK.md**](RUNBOOK.md) — Deployment, troubleshooting playbooks, and disaster recovery procedures
 - [**INTERVIEW_GUIDE.md**](INTERVIEW_GUIDE.md) — Architectural defense, technical Q&A, and elevator pitches (30s, 2m, 10m, 30m)
 - [**TRADE_OFFS.md**](TRADE_OFFS.md) — Pros & Cons matrix for every architectural component

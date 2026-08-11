@@ -135,11 +135,12 @@ All benchmark claims are backed by verifiable scripts and raw evidence in the re
 
 Hermes includes complete architectural defense and interview preparation material:
 
-- [**ARCHITECTURE.md**](ARCHITECTURE.md) — Detailed request flow diagrams & component mapping
+- [**COST_ESTIMATES.md**](COST_ESTIMATES.md) — Operational AWS cost breakdowns across Low, Mid, and High scale profiles
+- [**ARCHITECTURE.md**](ARCHITECTURE.md) — Detailed request flow diagrams, failure recovery flows & component mapping
 - [**RUNBOOK.md**](RUNBOOK.md) — Deployment, troubleshooting playbooks, and disaster recovery procedures
 - [**INTERVIEW_GUIDE.md**](INTERVIEW_GUIDE.md) — Architectural defense, technical Q&A, and elevator pitches (30s, 2m, 10m, 30m)
 - [**TRADE_OFFS.md**](TRADE_OFFS.md) — Pros & Cons matrix for every architectural component
-- [**DECISIONS.md**](DECISIONS.md) — Architecture Decision Records (ADRs 001–005)
+- [**DECISIONS.md**](DECISIONS.md) — Standardized Architecture Decision Records (ADRs 001–005)
 - [**INCIDENTS.md**](INCIDENTS.md) — Incident post-mortems and Root Cause Analyses (RCA)
 - [**DEVELOPMENT.md**](DEVELOPMENT.md) — Developer onboarding, sequence diagrams, and CLI reference
 - [**CONTRIBUTING.md**](CONTRIBUTING.md) — Monorepo layout map and PR guidelines

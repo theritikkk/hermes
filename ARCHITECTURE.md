@@ -63,6 +63,69 @@ sequenceDiagram
 
 ---
 
+## Failure & Recovery Flow 1 — Worker Failure & Outbox DLQ Triage
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SFN as Step Functions
+    participant Worker as Activity Worker λ
+    participant CmdAPI as command-api λ
+    participant ES as DynamoDB Event Store
+    participant Stream as DynamoDB Streams
+    participant SQS as SQS Outbox Queue
+    participant Outbox as outbox-publisher λ
+    participant DLQ as SQS Outbox DLQ
+    participant DLQH as dlq-handler λ
+
+    SFN->>Worker: Invoke Activity Worker
+    Worker--xWorker: Execution Exception (e.g. Unparseable PDF)
+    Worker->>CmdAPI: POST /step-results {status: failed, retryable: false}
+    CmdAPI->>ES: Append StepFailed + WorkflowExecutionFailed
+    
+    ES->>Stream: Stream CDC Record
+    Stream->>SQS: Buffer Outbox Record
+    SQS->>Outbox: Invoke Outbox Publisher
+    Outbox--xOutbox: Transient Network / Permission Exception (ReceiveCount >= 5)
+    SQS->>DLQ: Route Poison Message after MaxReceives
+    
+    DLQ->>DLQH: Trigger DLQ Handler
+    Note over DLQH: Classify Poison Message & Emit EMF Metric
+    DLQH->>ES: Write Audit Item DLQ#<queue> (TTL=90 days)
+    DLQH->>DLQ: Delete Message (Clear DLQ)
+```
+
+---
+
+## Failure & Recovery Flow 2 — Projection Lag & Event Replay Recovery
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant EB as EventBridge Bus
+    participant Proj as execution-projection λ
+    participant RM as DynamoDB Read Model
+    participant Cron as outbox-republisher Cron λ
+    participant ES as DynamoDB Event Store
+
+    EB->>Proj: Dispatch Domain Event
+    Proj--xProj: Execution Error (e.g. DynamoDB Throttling)
+    Note over Proj: Event missed by projection
+    
+    loop Every 5 Minutes
+        Cron->>ES: Scan PENDING outbox events (age > 5 min)
+        ES-->>Cron: Return stranded events
+        Cron->>EB: PutEvents (Republish stranded events)
+        Cron->>ES: Update outbox status = PUBLISHED
+    end
+    
+    EB->>Proj: Redeliver Republished Domain Event
+    Note over Proj: Verify Optimistic Sequence Guard (seq > current_seq)
+    Proj->>RM: UpdateItem (Reconstruct Read Model State)
+```
+
+---
+
 ## Component Map
 
 ```mermaid

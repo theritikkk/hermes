@@ -120,7 +120,7 @@ describe('End-to-End System Integration Flow', () => {
       }
     }
 
-    // ── STEP 1: Command API — RegisterAsset ──────────────────────────────────────────
+    //  STEP 1: Command API  RegisterAsset 
     const regResult = await handleRegisterAsset(
       {
         commandType: 'RegisterAsset',
@@ -150,7 +150,7 @@ describe('End-to-End System Integration Flow', () => {
     assert.equal(readModelStore[readKey].status, 'RUNNING');
     assert.equal(readModelStore[readKey].assetId, assetId);
 
-    // ── STEP 2: Activity Worker 1 — validate ─────────────────────────────────────────
+    //  STEP 2: Activity Worker 1  validate 
     const valResult = await handleRecordStepResult(
       {
         commandType: 'RecordStepResult',
@@ -170,7 +170,7 @@ describe('End-to-End System Integration Flow', () => {
       checksum: 'sha256-abc123',
     });
 
-    // ── STEP 3: Activity Worker 2 — ocr ──────────────────────────────────────────────
+    //  STEP 3: Activity Worker 2  ocr 
     const ocrResult = await handleRecordStepResult(
       {
         commandType: 'RecordStepResult',
@@ -186,7 +186,7 @@ describe('End-to-End System Integration Flow', () => {
     assert.equal(ocrResult.accepted, true);
     assert.equal(readModelStore[readKey].steps['ocr'].status, 'completed');
 
-    // ── STEP 4: Activity Worker 3 — classify (Terminal Step) ─────────────────────────
+    //  STEP 4: Activity Worker 3  classify (Terminal Step) 
     const classifyResult = await handleRecordStepResult(
       {
         commandType: 'RecordStepResult',
@@ -201,7 +201,7 @@ describe('End-to-End System Integration Flow', () => {
 
     assert.equal(classifyResult.accepted, true);
 
-    // ── STEP 5: Final End-to-End System State Verification ──────────────────────────
+    //  STEP 5: Final End-to-End System State Verification 
     // Event Store verified total events = 6 (AssetReg + WfStart + StepVal + StepOcr + StepClassify + WfComp)
     assert.equal(eventStream.length, 6);
 

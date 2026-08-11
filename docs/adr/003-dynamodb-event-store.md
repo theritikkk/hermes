@@ -37,8 +37,8 @@ Optimistic concurrency via conditional put on `sequence` (expected version).
 
 **Negative**
 
-- No cross-aggregate transactions — sagas use choreography + compensating events.
-- Event payload size limits (400KB item) — large outputs go to S3, event stores reference.
+- No cross-aggregate transactions  sagas use choreography + compensating events.
+- Event payload size limits (400KB item)  large outputs go to S3, event stores reference.
 - Query patterns beyond designed GSIs require new GSIs or scan (avoid scans).
 
 ## Alternatives Considered

@@ -1,5 +1,5 @@
 /**
- * Hermes Workflow SDK — Core Types
+ * Hermes Workflow SDK  Core Types
  *
  * These types model the Step Functions ASL (Amazon States Language) JSON
  * that the WorkflowBuilder compiles to. They are intentionally structural,
@@ -7,7 +7,7 @@
  * be submitted directly to the AWS SDK CreateStateMachine API.
  */
 
-// ── Retry & Catch ─────────────────────────────────────────────────────────
+//  Retry & Catch 
 
 export interface RetryPolicy {
   /** Maximum number of attempts (including the first). */
@@ -31,7 +31,7 @@ export interface CatchConfig {
   readonly resultPath?: string;
 }
 
-// ── Compensation ──────────────────────────────────────────────────────────
+//  Compensation 
 
 export type CompensationStrategy =
   | 'COMPENSATE_ALL'       // roll back every completed step in LIFO order
@@ -44,7 +44,7 @@ export interface CompensationConfig {
   readonly strategy: CompensationStrategy;
 }
 
-// ── Step types ────────────────────────────────────────────────────────────
+//  Step types 
 
 export type StepType = 'task' | 'wait' | 'choice' | 'parallel' | 'pass' | 'succeed' | 'fail';
 
@@ -72,7 +72,7 @@ export interface HermesStepDefinition {
   readonly parallelBranches?: readonly HermesParallelBranchConfig[];
 }
 
-// ── Workflow definition ───────────────────────────────────────────────────
+//  Workflow definition 
 
 export interface HermesWorkflowDefinition {
   readonly name: string;
@@ -83,7 +83,7 @@ export interface HermesWorkflowDefinition {
   readonly asl?: AmazonStatesLanguage;
 }
 
-// ── Amazon States Language (ASL) types ────────────────────────────────────
+//  Amazon States Language (ASL) types 
 
 export interface AslRetrier {
   ErrorEquals: string[];
@@ -154,7 +154,7 @@ export interface AmazonStatesLanguage {
   States: Record<string, AslState>;
 }
 
-// ── Execution types ───────────────────────────────────────────────────────
+//  Execution types 
 
 export interface HermesExecutionInput {
   readonly tenantId: string;

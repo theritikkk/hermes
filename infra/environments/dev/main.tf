@@ -41,7 +41,7 @@ locals {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# ── KMS Key ────────────────────────────────────────────────
+# KMS Key 
 module "kms" {
   source      = "../../modules/kms-key"
   description = "Hermes ${var.environment} encryption key"
@@ -49,7 +49,7 @@ module "kms" {
   tags        = local.tags
 }
 
-# ── Event Store ────────────────────────────────────────────
+# Event Store 
 module "event_store" {
   source      = "../../modules/dynamodb-table"
   name        = "${local.prefix}-event-store"
@@ -73,7 +73,7 @@ module "event_store" {
   tags = local.tags
 }
 
-# ── CQRS Read Models ───────────────────────────────────────
+# CQRS Read Models 
 module "execution_read_model" {
   source      = "../../modules/dynamodb-table"
   name        = "${local.prefix}-execution-read-model"
@@ -135,13 +135,13 @@ module "audit_read_model" {
 }
 
 
-# ── EventBridge ────────────────────────────────────────────
+# EventBridge 
 module "event_bus" {
   source = "../../modules/eventbridge"
   name   = "${local.prefix}-events"
 }
 
-# ── Outbox SQS Queue ───────────────────────────────────────
+# Outbox SQS Queue 
 module "outbox_queue" {
   source                     = "../../modules/sqs-queue"
   name                       = "${local.prefix}-outbox"
@@ -156,13 +156,13 @@ module "outbox_queue" {
   tags                       = local.tags
 }
 
-# ── S3 Raw Asset Bucket ────────────────────────────────────
+# S3 Raw Asset Bucket 
 module "raw_bucket" {
   source = "../../modules/s3-bucket"
   name   = "${local.prefix}-raw-${data.aws_caller_identity.current.account_id}"
 }
 
-# ── SNS Ops Alerts ─────────────────────────────────────────
+# SNS Ops Alerts 
 module "ops_alerts" {
   source       = "../../modules/sns-topic"
   name         = "${local.prefix}-ops-alerts"
@@ -170,7 +170,7 @@ module "ops_alerts" {
   tags         = local.tags
 }
 
-# ── CloudWatch Alarms ──────────────────────────────────────
+# CloudWatch Alarms 
 module "alarms" {
   source        = "../../modules/cloudwatch-alarms"
   prefix        = local.prefix
@@ -188,7 +188,7 @@ module "alarms" {
   tags = local.tags
 }
 
-# ── Phase 10: AWS WAFv2 Web ACL for API Gateway Production Security ──
+# Phase 10: AWS WAFv2 Web ACL for API Gateway Production Security 
 resource "aws_wafv2_web_acl" "api" {
   name        = "${local.prefix}-api-waf"
   description = "Rate limiting and common vulnerability protection rules for Hermes HTTP API"
@@ -332,7 +332,7 @@ resource "aws_cloudwatch_dashboard" "observability" {
   })
 }
 
-# ── Outputs ────────────────────────────────────────────────
+# Outputs 
 output "event_store_table" { value = module.event_store.table_name }
 output "event_store_stream_arn" { value = module.event_store.stream_arn }
 output "execution_read_model_table" { value = module.execution_read_model.table_name }
@@ -342,7 +342,7 @@ output "outbox_queue_url" { value = module.outbox_queue.queue_url }
 output "outbox_dlq_url" { value = module.outbox_queue.dlq_url }
 output "kms_key_arn" { value = module.kms.key_arn }
 
-# ── Cognito User Pool ──────────────────────────────────────
+# Cognito User Pool 
 module "cognito" {
   source            = "../../modules/cognito-user-pool"
   name              = "${local.prefix}-users"
@@ -350,7 +350,7 @@ module "cognito" {
   tags              = local.tags
 }
 
-# ── Lambda Workers ─────────────────────────────────────────
+# Lambda Workers 
 # Placeholder zip (replaced by deploy-lambdas.sh on first deploy)
 locals {
   placeholder_zip = "${path.module}/placeholder.zip"
@@ -553,11 +553,11 @@ module "dlq_handler_lambda" {
   tags = local.tags
 }
 
-# ── Phase 1 Core: Activity Workers (validate / ocr / classify) ─
+# Phase 1 Core: Activity Workers (validate / ocr / classify) 
 # Invoked directly by Step Functions Task states. Each one calls
 # runActivity() (shared/activity-runner), which writes StepCompleted/
 # StepFailed events straight to the event store and publishes them to
-# EventBridge on every invocation — this is not optional plumbing, so
+# EventBridge on every invocation  this is not optional plumbing, so
 # these need the same event-store/event-bus wiring command-api has.
 module "validate_worker_lambda" {
   source        = "../../modules/lambda-function"
@@ -670,7 +670,7 @@ module "classify_worker_lambda" {
   tags = local.tags
 }
 
-# ── Phase 1 Core: Step Functions execution role ────────────
+# Phase 1 Core: Step Functions execution role 
 # The role the *state machine itself* assumes to invoke the worker Lambdas
 # above (distinct from the eventbridge-sfn-role below, which is what
 # EventBridge assumes to call states:StartExecution).
@@ -685,7 +685,7 @@ module "sfn_exec_role" {
   tags = local.tags
 }
 
-# ── Phase 1 Core: command-api / query-api ──────────────────
+# Phase 1 Core: command-api / query-api 
 module "command_api_lambda" {
   source        = "../../modules/lambda-function"
   function_name = "${local.prefix}-command-api"
@@ -703,7 +703,7 @@ module "command_api_lambda" {
   # command-api. The committed dist/handler.js has a leftover
   # startWorkflowExecution code path from an older design, but the current
   # command-handlers source never invokes it (it's not even in the
-  # CommandHandlerDeps interface anymore) — giving this function
+  # CommandHandlerDeps interface anymore)  giving this function
   # states:StartExecution would grant a permission nothing actually uses.
   environment_variables = {
     EVENT_STORE_TABLE = module.event_store.table_name
@@ -799,9 +799,9 @@ module "query_api_lambda" {
   tags = local.tags
 }
 
-# ── Phase 1 Core: HTTP API Gateway ──────────────────────────
+# Phase 1 Core: HTTP API Gateway 
 # No JWT authorizer wired yet (module.cognito exists but auth is deferred
-# per Section B — routes are open for today's smoke test). Wiring the
+# per Section B  routes are open for today's smoke test). Wiring the
 # Cognito authorizer onto these routes is the very next thing to do before
 # this goes anywhere near real traffic.
 module "http_api" {
@@ -825,10 +825,10 @@ module "http_api" {
   tags = local.tags
 }
 
-# ── Phase 1 Core: EventBridge → Step Functions (native target) ─
+# Phase 1 Core: EventBridge  Step Functions (native target) 
 # AssetRegistered/RegisterAsset commands cause command-api to call
 # states:StartExecution directly today (see WORKFLOW_STATE_MACHINE_ARN
-# above) — that's the synchronous path the smoke test exercises. This
+# above)  that's the synchronous path the smoke test exercises. This
 # EventBridge rule is the async fan-out path for anything else that wants
 # to react to WorkflowExecutionStarted without command-api knowing about it.
 module "eventbridge_sfn_role" {
@@ -848,24 +848,24 @@ module "eventbridge_sfn_target" {
   role_arn          = module.eventbridge_sfn_role.role_arn
 }
 
-# ── Replay Checkpoints S3 Bucket ───────────────────────────
+# Replay Checkpoints S3 Bucket 
 module "replay_checkpoints_bucket" {
   source = "../../modules/s3-bucket"
   name   = "${local.prefix}-replay-checkpoints-${data.aws_caller_identity.current.account_id}"
 }
 
-# ── Phase 2: RDS PostgreSQL Configuration Database ─────────
+# Phase 2: RDS PostgreSQL Configuration Database 
 # module "postgres" {
-#   source               = "../../modules/rds-postgres"
-#   identifier           = "${local.prefix}-postgres"
-#   allocated_storage    = 20
-#   db_name              = "hermes_admin"
-#   username             = "hermes_admin"
-#   kms_key_arn          = module.kms.key_arn
-#   tags                 = local.tags
+# source               = "../../modules/rds-postgres"
+# identifier           = "${local.prefix}-postgres"
+# allocated_storage    = 20
+# db_name              = "hermes_admin"
+# username             = "hermes_admin"
+# kms_key_arn          = module.kms.key_arn
+# tags                 = local.tags
 # }
 
-# ── Phase 2: OpenSearch Search Index ───────────────────────
+# Phase 2: OpenSearch Search Index 
 module "opensearch" {
   source      = "../../modules/opensearch"
   domain_name = "${local.prefix}-search"
@@ -873,7 +873,7 @@ module "opensearch" {
   tags        = local.tags
 }
 
-# ── Phase 2: OpenSearch Projection Lambda ──────────────────
+# Phase 2: OpenSearch Projection Lambda 
 module "opensearch_projection_lambda" {
   source        = "../../modules/lambda-function"
   function_name = "${local.prefix}-opensearch-projection"
@@ -911,7 +911,7 @@ module "opensearch_projection_lambda" {
   tags = local.tags
 }
 
-# ── Phase 2: Tenant Usage Projection Lambda ─────────────────
+# Phase 2: Tenant Usage Projection Lambda 
 module "usage_projection_lambda" {
   source        = "../../modules/lambda-function"
   function_name = "${local.prefix}-usage-projection"
@@ -965,7 +965,7 @@ module "usage_projection_lambda" {
   tags = local.tags
 }
 
-# ── Phase 3: Webhook Dispatcher Lambda ─────────────────────
+# Phase 3: Webhook Dispatcher Lambda 
 module "webhook_dispatcher_lambda" {
   source        = "../../modules/lambda-function"
   function_name = "${local.prefix}-webhook-dispatcher"
@@ -1004,7 +1004,7 @@ module "webhook_dispatcher_lambda" {
   tags = local.tags
 }
 
-# ── Phase 3: Outbox Periodic Republisher Lambda ────────────
+# Phase 3: Outbox Periodic Republisher Lambda 
 module "outbox_republisher_lambda" {
   source        = "../../modules/lambda-function"
   function_name = "${local.prefix}-outbox-republisher"
@@ -1046,12 +1046,12 @@ module "outbox_republisher_lambda" {
   tags = local.tags
 }
 
-# ── Phase 4: Step Functions Workflow Registry Module ───────
+# Phase 4: Step Functions Workflow Registry Module 
 # Only document-pipeline-v1's three states have real worker ARNs wired below
-# (validate/ocr/classify — Phase 1 scope). document-pipeline-v2,
+# (validate/ocr/classify  Phase 1 scope). document-pipeline-v2,
 # approval-flow-v1, and batch-etl-v1 still fall back to the module's dummy
 # placeholder ARNs because those workers (ner/embed/index/etc.) don't exist
-# yet — those three state machines will deploy but are not functional.
+# yet  those three state machines will deploy but are not functional.
 module "workflow_registry" {
   source         = "../../modules/workflow-registry"
   environment    = var.environment
@@ -1065,7 +1065,7 @@ module "workflow_registry" {
   }
 }
 
-# ── Additional Outputs ─────────────────────────────────────
+# Additional Outputs 
 output "cognito_user_pool_id" { value = module.cognito.user_pool_id }
 output "cognito_client_id" { value = module.cognito.client_id }
 output "cognito_issuer_url" { value = module.cognito.issuer_url }
@@ -1079,6 +1079,4 @@ output "query_api_function_name" { value = module.query_api_lambda.function_name
 output "validate_worker_function_name" { value = module.validate_worker_lambda.function_name }
 output "ocr_worker_function_name" { value = module.ocr_worker_lambda.function_name }
 output "classify_worker_function_name" { value = module.classify_worker_lambda.function_name }
-
-
 

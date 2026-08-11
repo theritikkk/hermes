@@ -13,7 +13,7 @@ import { AslCompiler, ParallelBranchBuilder, WorkflowBuilder } from './workflow.
 import { HermesApiError, HermesClient } from './client.js';
 import type { AmazonStatesLanguage, AslParallelState, AslTaskState } from './types.js';
 
-// ── WorkflowBuilder ────────────────────────────────────────────────────────
+//  WorkflowBuilder 
 
 describe('WorkflowBuilder', () => {
 
@@ -91,7 +91,7 @@ describe('WorkflowBuilder', () => {
   });
 });
 
-// ── AslCompiler ───────────────────────────────────────────────────────────
+//  AslCompiler 
 
 describe('AslCompiler', () => {
 
@@ -234,7 +234,7 @@ describe('AslCompiler', () => {
   });
 });
 
-// ── ParallelBranchBuilder ─────────────────────────────────────────────────
+//  ParallelBranchBuilder 
 
 describe('ParallelBranchBuilder', () => {
   it('builds branch with correct name and steps', () => {
@@ -249,7 +249,7 @@ describe('ParallelBranchBuilder', () => {
   });
 });
 
-// ── HermesClient ──────────────────────────────────────────────────────────
+//  HermesClient 
 
 describe('HermesClient constructor validation', () => {
   const validConfig = {
@@ -297,7 +297,7 @@ describe('HermesApiError', () => {
   });
 });
 
-// ── Full document-pipeline: integration scenario ──────────────────────────
+//  Full document-pipeline: integration scenario 
 
 describe('document-pipeline integration scenario', () => {
   it('compiles the canonical document-pipeline v1 workflow correctly', () => {
@@ -325,11 +325,11 @@ describe('document-pipeline integration scenario', () => {
     assert.equal(asl.StartAt, 'validate');
     assert.equal(Object.keys(asl.States).length, 3); // validate, ocr, post-processing
 
-    // validate → ocr
+    // validate  ocr
     assert.equal((asl.States['validate'] as AslTaskState).Next, 'ocr');
     // ocr has retry
     assert.ok((asl.States['ocr'] as AslTaskState).Retry);
-    // ocr → post-processing (parallel)
+    // ocr  post-processing (parallel)
     assert.equal((asl.States['ocr'] as AslTaskState).Next, 'post-processing');
     // post-processing is terminal
     assert.equal((asl.States['post-processing'] as AslParallelState).End, true);

@@ -19,10 +19,10 @@ BUILD="$ROOT/infra/.build"
 
 echo "Deploying Lambdas to environment: $ENVIRONMENT  (region: $AWS_REGION)"
 
-# ── All bundled Lambdas ─────────────────────────────────────────────────────
+# All bundled Lambdas 
 # This list must stay in sync with bundle-lambdas.sh.
 LAMBDAS=(
-  # Critical path (API → EventBridge → Step Functions → projections)
+  # Critical path (API  EventBridge  Step Functions  projections)
   "command-api"
   "query-api"
   "validate-worker"
@@ -69,7 +69,7 @@ for NAME in "${LAMBDAS[@]}"; do
     --function-name "$FUNCTION_NAME" \
     --region "$AWS_REGION"
 
-  echo "  ✓ $FUNCTION_NAME deployed"
+  echo "   $FUNCTION_NAME deployed"
 done
 
 echo ""

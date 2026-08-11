@@ -87,7 +87,7 @@ async function deliverWithRetry(
       const text = await res.text().catch(() => '');
       log.warn('webhook delivery non-2xx', { url, attempt, status: res.status, body: text.slice(0, 200) });
 
-      // 4xx client errors are not retryable — endpoint is broken, don't waste retries
+      // 4xx client errors are not retryable  endpoint is broken, don't waste retries
       if (res.status >= 400 && res.status < 500) {
         throw new Error(`Webhook endpoint returned ${res.status} (non-retryable)`);
       }

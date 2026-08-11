@@ -338,4 +338,3 @@ export function enforceRBAC(auth: AuthContext, requiredRole: Role): void {
     );
   }
 }
-

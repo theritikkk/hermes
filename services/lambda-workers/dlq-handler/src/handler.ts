@@ -9,13 +9,13 @@
  *     manual redrive tooling.
  *  4. Emits a CloudWatch EMF metric per (queue, tenantId, classification).
  *
- * Messages are NOT deleted by this handler — SQS handles deletion after a
+ * Messages are NOT deleted by this handler  SQS handles deletion after a
  * successful Lambda return. Throwing causes the message to remain on the DLQ
  * for the configured retention period (7 days).
  *
  * Poison classification:
- *  - receiveCount >= POISON_THRESHOLD (default 5) → POISON
- *  - otherwise                                    → TRANSIENT
+ *  - receiveCount >= POISON_THRESHOLD (default 5)  POISON
+ *  - otherwise                                     TRANSIENT
  */
 import type { SQSEvent } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -132,7 +132,7 @@ export const handler = async (event: SQSEvent): Promise<void> => {
       }
     }
 
-    // CloudWatch EMF metric — one per message
+    // CloudWatch EMF metric  one per message
     console.log(JSON.stringify({
       _aws: {
         Timestamp: Date.now(),

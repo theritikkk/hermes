@@ -6,7 +6,7 @@ locals {
     "batch-etl-v1"         = "${path.module}/../../../workflows/templates/batch-etl-v1.json"
   }
 
-  # Build ARN prefix from injected context — no hardcoded account IDs or regions
+  # Build ARN prefix from injected context  no hardcoded account IDs or regions
   fn_prefix = "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:hermes-${var.environment}"
 
   # Resolved worker ARNs: caller-supplied map takes precedence; fallback is derived from deployment context

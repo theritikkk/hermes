@@ -1,5 +1,5 @@
 {
-  "Comment": "Hermes batch-etl v1 — ingestBatch -> Map(ItemTransform) -> validateBatch -> loadToWarehouse",
+  "Comment": "Hermes batch-etl v1  ingestBatch -> Map(ItemTransform) -> validateBatch -> loadToWarehouse",
   "StartAt": "IngestBatch",
   "States": {
     "IngestBatch": {

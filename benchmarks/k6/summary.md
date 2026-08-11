@@ -1,4 +1,4 @@
-# Hermes — Load Test Summary
+# Hermes  Load Test Summary
 
 ## Status: Target SLA Definition (Not Yet Measured Against Production)
 

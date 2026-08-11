@@ -42,7 +42,7 @@ import type {
   RetryPolicy,
 } from './types.js';
 
-// ── Parallel Branch Builder ───────────────────────────────────────────────
+//  Parallel Branch Builder 
 
 /**
  * Fluent builder for a parallel branch within a {@link WorkflowBuilder}.
@@ -75,7 +75,7 @@ export class ParallelBranchBuilder {
   }
 }
 
-// ── Workflow Builder ──────────────────────────────────────────────────────
+//  Workflow Builder 
 
 /**
  * Fluent builder for Hermes workflow definitions.
@@ -97,7 +97,7 @@ export class WorkflowBuilder {
     this._name = name.trim();
   }
 
-  // ── Static factory ────────────────────────────────────────────────────
+  //  Static factory 
 
   /**
    * Creates a new WorkflowBuilder for the given workflow name.
@@ -108,7 +108,7 @@ export class WorkflowBuilder {
     return new WorkflowBuilder(name);
   }
 
-  // ── Builder methods ───────────────────────────────────────────────────
+  //  Builder methods 
 
   /**
    * Sets the semantic version of this workflow definition.
@@ -168,7 +168,7 @@ export class WorkflowBuilder {
     return this;
   }
 
-  // ── Terminal operations ───────────────────────────────────────────────
+  //  Terminal operations 
 
   /**
    * Builds and returns the {@link HermesWorkflowDefinition} without ASL compilation.
@@ -199,7 +199,7 @@ export class WorkflowBuilder {
     return { ...definition, asl };
   }
 
-  // ── Private validation ────────────────────────────────────────────────
+  //  Private validation 
 
   private _validateStepName(name: string): void {
     if (!name || name.trim().length === 0) {
@@ -217,7 +217,7 @@ export class WorkflowBuilder {
   }
 }
 
-// ── ASL Compiler ──────────────────────────────────────────────────────────
+//  ASL Compiler 
 
 /**
  * Transforms a {@link HermesWorkflowDefinition} into valid ASL JSON.

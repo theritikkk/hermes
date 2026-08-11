@@ -1,5 +1,5 @@
 {
-  "Comment": "Hermes document-pipeline v2 — validate -> ocr -> classify -> Parallel(ner, embed) -> index",
+  "Comment": "Hermes document-pipeline v2  validate -> ocr -> classify -> Parallel(ner, embed) -> index",
   "StartAt": "ValidateChoice",
   "States": {
     "ValidateChoice": {

@@ -14,11 +14,11 @@ Use a **single EventBridge bus** (`hermes-events`) for integration events:
 
 - Command handlers publish after successful append (see ADR-012 outbox).
 - Rules route by `detail-type` (e.g., `WorkflowExecutionStarted`, `StepCompleted`).
-- **`WorkflowExecutionStarted` → Step Functions** is a native EventBridge target (IAM role + input transformer), not a Lambda intermediary.
-- **`StepCompleted` / terminal events → projection Lambdas** via separate rules.
+- **`WorkflowExecutionStarted`  Step Functions** is a native EventBridge target (IAM role + input transformer), not a Lambda intermediary.
+- **`StepCompleted` / terminal events  projection Lambdas** via separate rules.
 - Event schemas registered in `shared/event-schemas/` and validated in CI.
 
-**SNS removed** — EventBridge supports fan-out to multiple targets with filtering.
+**SNS removed**  EventBridge supports fan-out to multiple targets with filtering.
 
 ## Consequences
 
@@ -30,7 +30,7 @@ Use a **single EventBridge bus** (`hermes-events`) for integration events:
 
 **Negative**
 
-- At-least-once delivery — all consumers must be idempotent.
+- At-least-once delivery  all consumers must be idempotent.
 - Slight latency vs direct invoke (acceptable for async platform).
 
 ## Alternatives Considered

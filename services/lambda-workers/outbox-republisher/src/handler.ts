@@ -126,7 +126,7 @@ export const handler = async (event: ScheduledEvent): Promise<void> => {
         eventId: item.eventId,
         eventType: item.eventType,
       });
-      // Continue processing remaining events — partial success is fine
+      // Continue processing remaining events  partial success is fine
     }
   }
 

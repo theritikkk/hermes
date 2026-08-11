@@ -29,7 +29,7 @@ Projection Lambdas (`event-projections`) are the **only** writers to read models
 
 **Negative**
 
-- Eventual consistency on reads — UI must tolerate short lag.
+- Eventual consistency on reads  UI must tolerate short lag.
 - More components than a monolith.
 - Full projection rebuild is an operational procedure we must document and automate.
 

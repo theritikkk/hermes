@@ -1,5 +1,5 @@
 {
-  "Comment": "Hermes approval-flow v1 — submit -> humanReview -> Choice(approved/denied) -> notify",
+  "Comment": "Hermes approval-flow v1  submit -> humanReview -> Choice(approved/denied) -> notify",
   "StartAt": "SubmitRequest",
   "States": {
     "SubmitRequest": {

@@ -19,7 +19,7 @@ console.log('====================================================');
 console.log('Runtime Worker Integration & Handlers Test Suite');
 console.log('====================================================\n');
 
-// ── 1. outbox-publisher Runtime Logic Test ─────────────────────────────────
+//  1. outbox-publisher Runtime Logic Test 
 
 console.log('1. Testing outbox-publisher SQS Record Mapping...');
 
@@ -69,7 +69,7 @@ assert.equal(detail.tenantId, 'tenant-acme');
 console.log('   [SUCCESS] outbox-publisher correctly transformed DynamoDB Stream record to EventBridge Entry.');
 
 
-// ── 2. snapshot-trigger Runtime Threshold Test ─────────────────────────────
+//  2. snapshot-trigger Runtime Threshold Test 
 
 console.log('\n2. Testing snapshot-trigger Threshold Logic...');
 
@@ -85,7 +85,7 @@ assert.equal(shouldTriggerSnapshot(125, 50), false);
 console.log('   [SUCCESS] snapshot-trigger accurately fires on exact N-sequence multiples (50, 100).');
 
 
-// ── 3. dlq-handler Poison Detection & Metrics Test ─────────────────────────
+//  3. dlq-handler Poison Detection & Metrics Test 
 
 console.log('\n3. Testing dlq-handler Message Parsing & Metric Extraction...');
 
@@ -117,7 +117,7 @@ assert.equal(poisonDlq.dimensions.IsPoison, 'true');
 console.log('   [SUCCESS] dlq-handler correctly categorizes DLQ records and produces CloudWatch metric dimensions.');
 
 
-// ── 4. webhook-dispatcher HMAC-SHA256 Signature Test ───────────────────────
+//  4. webhook-dispatcher HMAC-SHA256 Signature Test 
 
 console.log('\n4. Testing webhook-dispatcher HMAC-SHA256 Signature Security...');
 
@@ -138,7 +138,7 @@ assert.notEqual(sig1, tamperedSig, 'HMAC signature must change if payload is alt
 console.log('   [SUCCESS] webhook-dispatcher signature generation verified with HMAC-SHA256 security guarantees.');
 
 
-// ── 5. outbox-republisher Scanner Test ─────────────────────────────────────
+//  5. outbox-republisher Scanner Test 
 
 console.log('\n5. Testing outbox-republisher Stale Item Filter...');
 

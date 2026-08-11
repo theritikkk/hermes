@@ -13,9 +13,9 @@ EventBridge, SQS, Lambda, and Step Functions all deliver **at least once**. Retr
 Every activity worker enforces idempotency with key `(executionId, stepName)`:
 
 1. Check execution read model / idempotency table for completed step.
-2. If complete → return cached output (short-circuit).
-3. If in progress → optional lock via conditional write (Phase 1: rely on SFN serial step execution).
-4. On success → append `StepCompleted` event with output reference (S3 for large payloads).
+2. If complete  return cached output (short-circuit).
+3. If in progress  optional lock via conditional write (Phase 1: rely on SFN serial step execution).
+4. On success  append `StepCompleted` event with output reference (S3 for large payloads).
 
 Command handlers use `(commandId)` or `(tenantId, clientRequestId)` for idempotent command acceptance.
 

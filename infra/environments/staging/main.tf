@@ -1,4 +1,4 @@
-# Staging environment — mirrors prod configuration with reduced capacity
+# Staging environment  mirrors prod configuration with reduced capacity
 terraform {
   required_version = ">= 1.8.0"
   required_providers {
@@ -33,7 +33,7 @@ locals {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# ── KMS Key ────────────────────────────────────────────────
+# KMS Key 
 module "kms" {
   source      = "../../modules/kms-key"
   description = "Hermes ${var.environment} encryption key"
@@ -41,7 +41,7 @@ module "kms" {
   tags        = local.tags
 }
 
-# ── Event Store ────────────────────────────────────────────
+# Event Store 
 module "event_store" {
   source      = "../../modules/dynamodb-table"
   name        = "${local.prefix}-event-store"
@@ -65,7 +65,7 @@ module "event_store" {
   tags = local.tags
 }
 
-# ── Execution Read Model ───────────────────────────────────
+# Execution Read Model 
 module "execution_read_model" {
   source      = "../../modules/dynamodb-table"
   name        = "${local.prefix}-execution-read-model"
@@ -76,13 +76,13 @@ module "execution_read_model" {
   tags        = local.tags
 }
 
-# ── EventBridge ────────────────────────────────────────────
+# EventBridge 
 module "event_bus" {
   source = "../../modules/eventbridge"
   name   = "${local.prefix}-events"
 }
 
-# ── Outbox SQS Queue ───────────────────────────────────────
+# Outbox SQS Queue 
 module "outbox_queue" {
   source                     = "../../modules/sqs-queue"
   name                       = "${local.prefix}-outbox"
@@ -97,13 +97,13 @@ module "outbox_queue" {
   tags                       = local.tags
 }
 
-# ── S3 Raw Asset Bucket ────────────────────────────────────
+# S3 Raw Asset Bucket 
 module "raw_bucket" {
   source = "../../modules/s3-bucket"
   name   = "${local.prefix}-raw-${data.aws_caller_identity.current.account_id}"
 }
 
-# ── SNS Ops Alerts ─────────────────────────────────────────
+# SNS Ops Alerts 
 module "ops_alerts" {
   source       = "../../modules/sns-topic"
   name         = "${local.prefix}-ops-alerts"
@@ -111,7 +111,7 @@ module "ops_alerts" {
   tags         = local.tags
 }
 
-# ── CloudWatch Alarms ──────────────────────────────────────
+# CloudWatch Alarms 
 module "alarms" {
   source        = "../../modules/cloudwatch-alarms"
   prefix        = local.prefix
@@ -129,7 +129,7 @@ module "alarms" {
   tags = local.tags
 }
 
-# ── Outputs ────────────────────────────────────────────────
+# Outputs 
 output "event_store_table" { value = module.event_store.table_name }
 output "event_store_stream_arn" { value = module.event_store.stream_arn }
 output "execution_read_model_table" { value = module.execution_read_model.table_name }

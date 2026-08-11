@@ -1,4 +1,4 @@
-# Hermes Platform — Senior & Principal Engineer Interview Cheat Sheet
+# Hermes Platform  Senior & Principal Engineer Interview Cheat Sheet
 
 This document contains high-yield Q&A scenarios designed for Staff / Principal / L6+ System Design and Architecture interviews.
 
@@ -14,7 +14,7 @@ This document contains high-yield Q&A scenarios designed for Staff / Principal /
 
 ### Q2: "Why DynamoDB for the Event Store instead of Aurora PostgreSQL?"
 - **Answer**: 
-  1. **Connection Exhaustion under Lambda Concurrency**: Lambda activity workers burst to 10,000+ concurrent instances. PostgreSQL requires connection pools (or RDS Proxy) which cap out under serverless concurrency spikes. DynamoDB is HTTP/HTTPS stateless — no connection limit.
+  1. **Connection Exhaustion under Lambda Concurrency**: Lambda activity workers burst to 10,000+ concurrent instances. PostgreSQL requires connection pools (or RDS Proxy) which cap out under serverless concurrency spikes. DynamoDB is HTTP/HTTPS stateless  no connection limit.
   2. **Predictable Latency at Any Volume**: Single-digit millisecond `TransactWriteItems` performance regardless of table size.
   3. **Native Streams Outbox**: DynamoDB Streams trigger `outbox-publisher` without requiring polling threads or Debezium CDC infrastructure.
 
@@ -59,7 +59,7 @@ This document contains high-yield Q&A scenarios designed for Staff / Principal /
 - **Hermes Design**:
   1. `DlqInspectionService` provides a safe peek API (`visibilityTimeout = 0`) via `GET /api/v1/dlq`.
   2. Poison messages are explicitly flagged in `DlqController`.
-  3. Automated redrives for poison messages are blocked — an operator must either redrive manually via `POST /api/v1/dlq/{id}/redrive` (after fixing upstream code) or purge the message via `DELETE /api/v1/dlq/{id}` with a mandatory audit reason.
+  3. Automated redrives for poison messages are blocked  an operator must either redrive manually via `POST /api/v1/dlq/{id}/redrive` (after fixing upstream code) or purge the message via `DELETE /api/v1/dlq/{id}` with a mandatory audit reason.
 
 ---
 

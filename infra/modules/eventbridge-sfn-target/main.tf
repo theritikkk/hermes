@@ -18,7 +18,7 @@ variable "role_arn" {
   type = string
 }
 
-# EventBridge → Step Functions native target (no Lambda glue).
+# EventBridge  Step Functions native target (no Lambda glue).
 # Maps WorkflowExecutionStarted integration event payload to SFN execution input.
 resource "aws_cloudwatch_event_rule" "this" {
   name           = var.rule_name

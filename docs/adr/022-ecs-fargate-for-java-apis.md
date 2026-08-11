@@ -2,7 +2,7 @@
 
 ## Status
 
-**Superseded** — Reverted during Phase 1 remediation (August 2026)
+**Superseded**  Reverted during Phase 1 remediation (August 2026)
 
 ## Original Decision
 
@@ -10,7 +10,7 @@ Deploy Java API services (`command-api`, `query-api`, `replay-service`, `admin-s
 
 ## Why This Was Reverted
 
-1. **Contradicts the project's core serverless constraint.** The original project brief mandates: "DO NOT USE ECS / EKS / Kubernetes / long-running EC2 servers — everything should be designed around serverless services." This ADR was adopted without flagging that contradiction.
+1. **Contradicts the project's core serverless constraint.** The original project brief mandates: "DO NOT USE ECS / EKS / Kubernetes / long-running EC2 servers  everything should be designed around serverless services." This ADR was adopted without flagging that contradiction.
 
 2. **The premise (Java runtime) was itself reversed.** ADR-013 established Node.js/TypeScript as the Lambda runtime for Phase 1 services. With TypeScript handlers, JVM cold-start latency is not a concern, and the ECS Fargate workaround becomes unnecessary.
 

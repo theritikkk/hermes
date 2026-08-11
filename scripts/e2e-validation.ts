@@ -17,7 +17,7 @@ import { WorkflowBuilder, AslCompiler } from '../shared/sdk/typescript/src/workf
 import type { AmazonStatesLanguage, AslTaskState, AslParallelState } from '../shared/sdk/typescript/src/types.js';
 
 console.log('----------------------------------------------------');
-console.log('Hermes Platform — End-to-End Lifecycle Validation');
+console.log('Hermes Platform  End-to-End Lifecycle Validation');
 console.log('----------------------------------------------------');
 
 // Step 1: SDK ASL Compilation

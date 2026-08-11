@@ -1,4 +1,4 @@
-# ── Multi-Region Disaster Recovery & Global Tables Module ──────────────────
+# Multi-Region Disaster Recovery & Global Tables Module 
 
 terraform {
   required_version = ">= 1.8.0"
@@ -14,7 +14,7 @@ locals {
   prefix = "${var.project}-${var.environment}"
 }
 
-# ── DynamoDB Global Table (Event Store Replication) ─────────────────────────
+# DynamoDB Global Table (Event Store Replication) 
 resource "aws_dynamodb_table" "global_event_store" {
   name             = "${local.prefix}-global-event-store"
   billing_mode     = "PAY_PER_REQUEST"
@@ -52,7 +52,7 @@ resource "aws_dynamodb_table" "global_event_store" {
   }
 }
 
-# ── S3 Cross-Region Replication (CRR) IAM Role ─────────────────────────────
+# S3 Cross-Region Replication (CRR) IAM Role 
 resource "aws_iam_role" "crr_role" {
   count = var.enable_s3_crr ? 1 : 0
 
@@ -68,7 +68,7 @@ resource "aws_iam_role" "crr_role" {
   })
 }
 
-# ── Route 53 CloudWatch Health Check for Primary Region ────────────────────
+# Route 53 CloudWatch Health Check for Primary Region 
 resource "aws_cloudwatch_metric_alarm" "primary_region_health" {
   alarm_name          = "${local.prefix}-primary-region-health"
   comparison_operator = "GreaterThanThreshold"

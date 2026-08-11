@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Hermes CLI — Developer and Operator Command-Line Interface
+ * Hermes CLI  Developer and Operator Command-Line Interface
  *
  * Usage:
  *   hermes workflow register <file.json> --url <commandApiUrl> --tenant <tenantId> --token <token>
@@ -51,7 +51,7 @@ async function main() {
 
 function printHelp() {
   console.log(`
-Hermes CLI — Workflow Platform Command Line Tool
+Hermes CLI  Workflow Platform Command Line Tool
 
 Commands:
   workflow register <file.json>  Register a workflow definition (JSON or ASL)

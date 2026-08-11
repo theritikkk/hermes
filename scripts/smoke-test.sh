@@ -1,33 +1,33 @@
 #!/usr/bin/env bash
 # scripts/smoke-test.sh
 #
-# Phase 3 smoke test — exercises the full critical path:
+# Phase 3 smoke test  exercises the full critical path:
 #
-#   POST /assets
-#     → EventBridge WorkflowExecutionStarted
-#       → Step Functions document-pipeline-v1 (SUCCEEDED)
-#         → validate-worker → ocr-worker → classify-worker
-#     → execution-projection (EventBridge → DynamoDB read model)
-#   GET /executions/{executionId} → read model round-trip
-#   DLQ depth → 0
+# POST /assets
+# EventBridge WorkflowExecutionStarted
+# Step Functions document-pipeline-v1 (SUCCEEDED)
+# validate-worker  ocr-worker  classify-worker
+# execution-projection (EventBridge  DynamoDB read model)
+# GET /executions/{executionId}  read model round-trip
+# DLQ depth  0
 #
 # Usage:
-#   ./scripts/smoke-test.sh                          # uses outputs from terraform output
-#   API_URL=https://... AWS_REGION=ap-south-1 ./scripts/smoke-test.sh
+# ./scripts/smoke-test.sh                          # uses outputs from terraform output
+# API_URL=https://... AWS_REGION=ap-south-1 ./scripts/smoke-test.sh
 #
 # Prerequisites: aws-cli v2, curl, jq
 # Exit code: 0 = all assertions passed, non-zero = failure
 
 set -euo pipefail
 
-# ── Colour helpers ───────────────────────────────────────────
+# Colour helpers 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BOLD='\033[1m'; NC='\033[0m'
-pass()  { echo -e "${GREEN}  ✓${NC} $*"; }
-fail()  { echo -e "${RED}  ✗ FAIL:${NC} $*"; exit 1; }
-info()  { echo -e "${YELLOW}  ▸${NC} $*"; }
+pass()  { echo -e "${GREEN}  ${NC} $*"; }
+fail()  { echo -e "${RED}   FAIL:${NC} $*"; exit 1; }
+info()  { echo -e "${YELLOW}  ${NC} $*"; }
 header(){ echo -e "\n${BOLD}$*${NC}"; }
 
-# ── Config ───────────────────────────────────────────────────
+# Config 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 INFRA_DIR="$ROOT/infra/environments/dev"
@@ -57,21 +57,21 @@ if [ -z "${SFN_ARN:-}" ]; then
 fi
 
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Hermes Smoke Test — Phase 3 Critical Path"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "  Hermes Smoke Test  Phase 3 Critical Path"
+echo ""
 echo "  API URL    : $API_URL"
 echo "  SFN ARN    : ${SFN_ARN:-<not resolved>}"
 echo "  DLQ URL    : ${DLQ_URL:-<not resolved>}"
 echo "  Region     : $AWS_REGION"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 
 S3_KEY="smoke-test/$(date +%s).pdf"
 
-# ────────────────────────────────────────────────────────────
-# Layer 1 — POST /assets
-# ────────────────────────────────────────────────────────────
-header "Layer 1 — POST /assets"
+# 
+# Layer 1  POST /assets
+# 
+header "Layer 1  POST /assets"
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "$API_URL/assets" \
   -H "Content-Type: application/json" \
@@ -101,13 +101,13 @@ ASSET_REGISTERED=$(echo "$HTTP_BODY" | jq -r '[.events[]?.eventType] | contains(
 WF_STARTED=$(echo "$HTTP_BODY" | jq -r '[.events[]?.eventType] | contains(["WorkflowExecutionStarted"])' 2>/dev/null || echo "false")
 [ "$WF_STARTED" = "true" ] && pass "WorkflowExecutionStarted event present" || info "WorkflowExecutionStarted not in response"
 
-# ────────────────────────────────────────────────────────────
-# Layer 2+3 — EventBridge → Step Functions (SUCCEEDED)
-# ────────────────────────────────────────────────────────────
-header "Layer 2+3 — Step Functions document-pipeline-v1"
+# 
+# Layer 2+3  EventBridge  Step Functions (SUCCEEDED)
+# 
+header "Layer 2+3  Step Functions document-pipeline-v1"
 
 if [ -z "${SFN_ARN:-}" ]; then
-  info "SFN_ARN not resolved — skipping Step Functions check"
+  info "SFN_ARN not resolved  skipping Step Functions check"
 else
   DEADLINE=$((SECONDS + POLL_TIMEOUT))
   SFN_STATUS=""
@@ -152,10 +152,10 @@ else
   pass "Step Functions status = SUCCEEDED"
 fi
 
-# ────────────────────────────────────────────────────────────
-# Layer 5 — DynamoDB Read Model (via projection Lambda)
-# ────────────────────────────────────────────────────────────
-header "Layer 5 — DynamoDB execution-read-model"
+# 
+# Layer 5  DynamoDB Read Model (via projection Lambda)
+# 
+header "Layer 5  DynamoDB execution-read-model"
 
 DEADLINE=$((SECONDS + POLL_TIMEOUT))
 READ_MODEL_STATUS=""
@@ -181,10 +181,10 @@ done
 [ "$ITEM_COUNT" -gt 0 ] || fail "No read model entry found for executionId=$EXECUTION_ID after ${POLL_TIMEOUT}s"
 pass "Read model item written (status=$READ_MODEL_STATUS)"
 
-# ────────────────────────────────────────────────────────────
-# Layer 8 — GET /executions/{executionId}
-# ────────────────────────────────────────────────────────────
-header "Layer 8 — GET /executions/{executionId}"
+# 
+# Layer 8  GET /executions/{executionId}
+# 
+header "Layer 8  GET /executions/{executionId}"
 
 QUERY_RESPONSE=$(curl -s -w "\n%{http_code}" "$API_URL/executions/$EXECUTION_ID")
 QUERY_BODY=$(echo "$QUERY_RESPONSE" | awk 'NR>1{print prev} {prev=$0}')
@@ -198,7 +198,7 @@ pass "HTTP 200 received"
 
 RETURNED_ID=$(echo "$QUERY_BODY" | jq -r '.SK // empty' | sed 's/^EXEC#//')
 [ "$RETURNED_ID" = "$EXECUTION_ID" ] || \
-  info "executionId in response ($RETURNED_ID) — key format may differ"
+  info "executionId in response ($RETURNED_ID)  key format may differ"
 pass "Query API returned execution record"
 
 RETURNED_STATUS=$(echo "$QUERY_BODY" | jq -r '.status // empty')
@@ -210,13 +210,13 @@ RETURNED_WORKFLOW=$(echo "$QUERY_BODY" | jq -r '.workflowName // empty')
   fail "workflowName mismatch: expected 'document-pipeline-v1', got '$RETURNED_WORKFLOW'"
 pass "workflowName = document-pipeline-v1"
 
-# ────────────────────────────────────────────────────────────
-# Layer 7 — DLQ depth
-# ────────────────────────────────────────────────────────────
-header "Layer 7 — DLQ ApproximateNumberOfMessages"
+# 
+# Layer 7  DLQ depth
+# 
+header "Layer 7  DLQ ApproximateNumberOfMessages"
 
 if [ -z "${DLQ_URL:-}" ]; then
-  info "DLQ_URL not resolved — skipping DLQ check"
+  info "DLQ_URL not resolved  skipping DLQ check"
 else
   DLQ_ATTRS=$(aws sqs get-queue-attributes \
     --queue-url "$DLQ_URL" \
@@ -229,17 +229,17 @@ else
 
   info "DLQ visible=$DLQ_VISIBLE, in-flight=$DLQ_INFLIGHT"
 
-  [ "$DLQ_VISIBLE" = "0" ] || fail "DLQ has $DLQ_VISIBLE visible messages — check for failed workers"
+  [ "$DLQ_VISIBLE" = "0" ] || fail "DLQ has $DLQ_VISIBLE visible messages  check for failed workers"
   pass "DLQ visible messages = 0"
 fi
 
-# ────────────────────────────────────────────────────────────
+# 
 # Summary
-# ────────────────────────────────────────────────────────────
+# 
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 echo -e "  ${GREEN}${BOLD}ALL SMOKE TEST LAYERS PASSED${NC}"
 echo "  executionId : $EXECUTION_ID"
 echo "  s3Key       : $S3_KEY"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 echo ""

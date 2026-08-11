@@ -31,8 +31,8 @@ Use **event sourcing** for workflow execution (and asset registration) aggregate
 **Negative**
 
 - Event schema evolution requires `eventVersion` and upcasters.
-- Streams grow unbounded — need archival policy (S3 export) for old executions.
-- Developers must think in events, not CRUD — steeper onboarding.
+- Streams grow unbounded  need archival policy (S3 export) for old executions.
+- Developers must think in events, not CRUD  steeper onboarding.
 
 ## Alternatives Considered
 

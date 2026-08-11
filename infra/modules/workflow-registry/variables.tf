@@ -21,5 +21,5 @@ variable "aws_region" {
 
 variable "aws_account_id" {
   type        = string
-  description = "AWS account ID — used to construct Lambda ARN fallbacks when worker_arns are not supplied"
+  description = "AWS account ID  used to construct Lambda ARN fallbacks when worker_arns are not supplied"
 }

@@ -2,7 +2,7 @@
 
 ## Status
 
-**Superseded** by ADR-013 — Reverted during Phase 1 remediation (August 2026)
+**Superseded** by ADR-013  Reverted during Phase 1 remediation (August 2026)
 
 ## Original Decision
 

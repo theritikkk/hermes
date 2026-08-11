@@ -10,7 +10,7 @@ Publishing an event directly to EventBridge inline after a DynamoDB write introd
 
 ## Decision
 
-Implement the **Transactional Outbox** pattern via DynamoDB Streams → SQS → `outbox-publisher` Lambda → EventBridge → mark published.
+Implement the **Transactional Outbox** pattern via DynamoDB Streams  SQS  `outbox-publisher` Lambda  EventBridge  mark published.
 
 The intermediate SQS queue is placed between DynamoDB Streams and the publisher Lambda because DynamoDB Streams records are not re-processed after a Lambda failure. SQS provides a Dead Letter Queue (DLQ), configurable retries, and visibility timeouts to ensure robust processing.
 

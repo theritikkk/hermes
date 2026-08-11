@@ -4,7 +4,7 @@ This guide equips you to defend every architectural choice in Hermes during tech
 
 ---
 
-## ⏱️ Elevator Pitches
+## ⏱ Elevator Pitches
 
 ### 30-Second Pitch (Elevator / Quick Introduction)
 > "Hermes is a production-inspired serverless workflow orchestration platform built on AWS. It handles multi-step processes like document pipelines and ETL jobs using Event Sourcing, CQRS, and the Transactional Outbox pattern. By combining DynamoDB, EventBridge, and Step Functions, it guarantees at-least-once event delivery with zero dual-write data loss and low-latency O(1) read queries from pre-projected CQRS read models."
@@ -22,7 +22,7 @@ This guide equips you to defend every architectural choice in Hermes during tech
 
 ---
 
-## ❓ Technical Q&A & Architectural Defense
+## Technical Q&A & Architectural Defense
 
 ### 1. Why EventBridge instead of Amazon SNS or SQS?
 - **Answer**: EventBridge provides native content-based event filtering (`detail-type`, `source`, `payload`), native target rules directly invoking AWS Step Functions state machines without Lambda glue code, and a schema registry. SNS requires separate SQS subscriptions per consumer without native Step Functions parameter transformation.

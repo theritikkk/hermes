@@ -18,14 +18,14 @@ Workflow definitions are **immutable once published**:
 - Publishing v2 does not affect in-flight v1 executions.
 - Phase 1: single version from repo JSON. Phase 2: Postgres `workflow_definitions` table.
 
-Custom tenant workflows (Phase 3+) compile to ASL from a validated JSON DSL — still versioned.
+Custom tenant workflows (Phase 3+) compile to ASL from a validated JSON DSL  still versioned.
 
 ## Consequences
 
 **Positive**
 
-- Deterministic replay — same version + same events = same path.
-- Safe deploys — new uploads pick up latest active version via config.
+- Deterministic replay  same version + same events = same path.
+- Safe deploys  new uploads pick up latest active version via config.
 
 **Negative**
 

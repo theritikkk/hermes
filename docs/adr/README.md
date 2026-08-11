@@ -2,9 +2,9 @@
 
 This directory contains all Architecture Decision Records (ADRs) for Hermes.
 
-An ADR documents a significant architectural decision: the context that motivated it, the decision made, and its consequences. They are written for engineers who need to understand *why* the system is shaped the way it is — not just *what* it does.
+An ADR documents a significant architectural decision: the context that motivated it, the decision made, and its consequences. They are written for engineers who need to understand *why* the system is shaped the way it is  not just *what* it does.
 
-Each ADR follows the format: **Status → Context → Decision → Consequences → Alternatives Considered**.
+Each ADR follows the format: **Status  Context  Decision  Consequences  Alternatives Considered**.
 
 ---
 
@@ -27,7 +27,7 @@ Each ADR follows the format: **Status → Context → Decision → Consequences 
 | [013](013-nodejs-typescript-lambda-runtime.md) | TypeScript for thin Lambda workers | Accepted |
 | [014](014-java-spring-for-apis.md) | Java 21 + Spring Boot for API services | Accepted |
 | [015](015-transact-write-for-event-append.md) | `TransactWriteItems` for atomic event append | Accepted |
-| [016](016-dynamodb-streams-outbox.md) | DynamoDB Streams → SQS → outbox publisher | Accepted |
+| [016](016-dynamodb-streams-outbox.md) | DynamoDB Streams  SQS  outbox publisher | Accepted |
 | [017](017-tenant-isolation-jwt.md) | Tenant isolation enforced via JWT claims | Accepted |
 | [022](022-ecs-fargate-for-java-apis.md) | ECS Fargate as the runtime for Java API services | Accepted |
 | [023](023-python-ai-workers.md) | Python for AI/ML activity workers | Accepted |

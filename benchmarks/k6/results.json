@@ -11,7 +11,7 @@
   },
   "metrics": {
     "http_req_duration": {
-      "note": "Target SLA values — replace with real k6 output after running load-test.js against a live deployment",
+      "note": "Target SLA values  replace with real k6 output after running load-test.js against a live deployment",
       "target_avg": 200,
       "target_p95": 300,
       "target_p99": 500

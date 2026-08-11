@@ -10,7 +10,7 @@ Hermes is a **production-inspired serverless workflow orchestration platform** d
 
 It processes multi-step workflows (document ingestion, approval flows, ETL data pipelines) with guaranteed at-least-once event delivery, tenant isolation, role-based access control, distributed X-Ray tracing, and real-time observability.
 
-## ⚙️ Runtime Architecture & Service Matrix
+## Runtime Architecture & Service Matrix
 
 Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit architectural specifications (ADRs) for multi-runtime expansion:
 
@@ -22,7 +22,7 @@ Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit archit
 
 ---
 
-## 🏛️ Architecture
+## Architecture
 
 ```
 [ Client / Tenant App ] 
@@ -73,7 +73,7 @@ Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit archit
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
 ### 1. Run Workspace Unit Tests
 ```bash
@@ -104,13 +104,13 @@ AWS_REGION=ap-south-1 ./scripts/smoke-test.sh
 
 ---
 
-## 🎬 Live Walkthrough Demo
+## Live Walkthrough Demo
 
 Refer to [`DEMO.md`](DEMO.md) for a structured 10–15 minute step-by-step presentation script covering system overview, architecture, live request execution, Step Functions orchestration, CloudWatch observability, X-Ray tracing, and incident debugging.
 
 ---
 
-## ✨ Key System Features
+## Key System Features
 
 - **Transactional Outbox Pattern**: Atomic database writes + asynchronous SQS/EventBridge event delivery eliminates dual-write data loss.
 - **CQRS Architecture**: Append-only $O(1)$ event store writes separated from 6 query-optimized DynamoDB read models & OpenSearch.
@@ -121,7 +121,7 @@ Refer to [`DEMO.md`](DEMO.md) for a structured 10–15 minute step-by-step prese
 
 ---
 
-## 📊 Load Testing
+## Load Testing
 
 The k6 load test script is ready to run against a live deployment:
 
@@ -142,7 +142,7 @@ The k6 load test script is ready to run against a live deployment:
 
 ---
 
-## 📚 Complete Documentation Sitemap & Interview Resources
+## Complete Documentation Sitemap & Interview Resources
 
 Hermes includes complete architectural defense and interview preparation material:
 

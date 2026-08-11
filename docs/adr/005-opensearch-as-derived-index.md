@@ -18,7 +18,7 @@ Rebuild procedure: replay relevant events from store (or re-read S3 processed ou
 
 **Positive**
 
-- Clear failure domain — index loss is reindex, not restore-from-backup crisis.
+- Clear failure domain  index loss is reindex, not restore-from-backup crisis.
 - Search tuning (kNN, analyzers) isolated from transactional stores.
 
 **Negative**

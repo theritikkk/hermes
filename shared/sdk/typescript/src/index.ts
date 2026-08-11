@@ -1,5 +1,5 @@
 /**
- * @hermes/sdk — Public API
+ * @hermes/sdk  Public API
  */
 
 export { WorkflowBuilder, ParallelBranchBuilder, AslCompiler } from './workflow.js';

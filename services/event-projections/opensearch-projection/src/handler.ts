@@ -44,7 +44,7 @@ async function bulkIndex(
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
-    throw new Error(`OpenSearch bulk failed: HTTP ${res.status} — ${text.slice(0, 300)}`);
+    throw new Error(`OpenSearch bulk failed: HTTP ${res.status}  ${text.slice(0, 300)}`);
   }
 
   const result = (await res.json()) as { errors?: boolean };

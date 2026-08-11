@@ -30,7 +30,7 @@ Document-specific stores (OpenSearch index shape) are projection concerns for th
 **Negative**
 
 - Slightly more abstraction in Phase 1 (generic execution model).
-- Risk of over-abstraction — mitigated by shipping one real template end-to-end first.
+- Risk of over-abstraction  mitigated by shipping one real template end-to-end first.
 
 ## Alternatives Considered
 

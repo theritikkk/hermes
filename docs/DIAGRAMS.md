@@ -1,4 +1,4 @@
-# Hermes Platform — System Diagrams & Visual Models
+# Hermes Platform  System Diagrams & Visual Models
 
 This document contains Mermaid diagrams visualizing the execution mechanics, event-sourcing outbox pipeline, Saga state machine, and snapshot time-travel engine.
 

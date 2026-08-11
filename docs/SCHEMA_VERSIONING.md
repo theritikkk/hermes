@@ -1,4 +1,4 @@
-# Hermes — Event Schema Versioning & Upcasting Strategy
+# Hermes  Event Schema Versioning & Upcasting Strategy
 
 This document details the event schema evolution and upcasting strategy for Hermes.
 
@@ -13,7 +13,7 @@ Domain events are immutable facts persisted in the event store (`hermes-dev-even
 
 ---
 
-## 2. Code Example: Upcasting `WorkflowExecutionStarted` (v1 → v2)
+## 2. Code Example: Upcasting `WorkflowExecutionStarted` (v1  v2)
 
 ### Schema Comparison
 

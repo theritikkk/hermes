@@ -2,7 +2,7 @@
  * Hermes HTTP Client
  *
  * Thin HTTP wrapper for the Hermes Command API and Replay Service.
- * Zero external dependencies — uses Node.js built-in `fetch` (Node 18+).
+ * Zero external dependencies  uses Node.js built-in `fetch` (Node 18+).
  *
  * Authentication: passes a Bearer token (from Cognito) on every request.
  * All responses are strongly-typed against the Hermes API contract.
@@ -36,14 +36,14 @@ import type {
   ReplayResponse,
 } from './types.js';
 
-// ── Config ────────────────────────────────────────────────────────────────
+//  Config 
 
 export interface HermesClientConfig {
   /** Base URL of the Hermes Command API (e.g. https://api.hermes.internal/command). */
   readonly commandApiUrl: string;
   /** Base URL of the Hermes Replay Service (e.g. https://api.hermes.internal/replay). */
   readonly replayApiUrl: string;
-  /** Tenant identifier — injected as X-Tenant-ID on every request. */
+  /** Tenant identifier  injected as X-Tenant-ID on every request. */
   readonly tenantId: string;
   /** Cognito access token. Rotated externally; client uses it as-is. */
   readonly accessToken: string;
@@ -51,7 +51,7 @@ export interface HermesClientConfig {
   readonly timeoutMs?: number;
 }
 
-// ── Response types (API contract) ─────────────────────────────────────────
+//  Response types (API contract) 
 
 interface StartExecutionResponse {
   executionId: string;
@@ -70,7 +70,7 @@ interface RegisterWorkflowResponse {
   message: string;
 }
 
-// ── Error ─────────────────────────────────────────────────────────────────
+//  Error 
 
 export class HermesApiError extends Error {
   constructor(
@@ -83,7 +83,7 @@ export class HermesApiError extends Error {
   }
 }
 
-// ── Client ────────────────────────────────────────────────────────────────
+//  Client 
 
 export class HermesClient {
   private readonly config: HermesClientConfig;
@@ -96,7 +96,7 @@ export class HermesClient {
     this.config = config;
   }
 
-  // ── Workflow Registration ────────────────────────────────────────────────
+  //  Workflow Registration 
 
   /**
    * Registers a compiled workflow definition with the Hermes admin service.
@@ -116,7 +116,7 @@ export class HermesClient {
     );
   }
 
-  // ── Execution ─────────────────────────────────────────────────────────────
+  //  Execution 
 
   /**
    * Submits an asset for workflow execution.
@@ -172,7 +172,7 @@ export class HermesClient {
     );
   }
 
-  // ── Replay ────────────────────────────────────────────────────────────────
+  //  Replay 
 
   /**
    * Triggers a replay of a past workflow execution.
@@ -192,7 +192,7 @@ export class HermesClient {
     );
   }
 
-  // ── HTTP helpers ──────────────────────────────────────────────────────────
+  //  HTTP helpers 
 
   private async post<T>(url: string, body: unknown): Promise<T> {
     const response = await fetch(url, {

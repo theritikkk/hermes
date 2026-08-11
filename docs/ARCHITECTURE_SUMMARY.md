@@ -1,4 +1,4 @@
-# Hermes Platform — Architectural & Technical Reference
+# Hermes Platform  Architectural & Technical Reference
 
 > **Principal Engineer Reference Guide**
 > An event-sourced, CQRS-based workflow orchestration platform natively engineered on AWS (TypeScript + Node.js Lambdas, Java 25 + Spring Boot, Step Functions, EventBridge, DynamoDB, Aurora PostgreSQL, OpenSearch, Cognito, S3).
@@ -10,43 +10,43 @@
 Hermes decouples state mutation from state observation through strict **Event Sourcing** and **CQRS (Command Query Responsibility Segregation)** boundaries.
 
 ```
-                  ┌─────────────────────────────────────────────────────────┐
-                  │                 Command Side (Write Path)               │
-                  └─────────────────────────────────────────────────────────┘
-                                               │
-                                               ▼
- Client  ───────► API Gateway ───────► command-api (TypeScript / Lambda)
-                                               │
-                                               ▼
+                  
+                                   Command Side (Write Path)               
+                  
+                                               
+                                               
+ Client   API Gateway  command-api (TypeScript / Lambda)
+                                               
+                                               
                                       DynamoDB Event Store
                               (PK: TENANT#t#EXEC#id, SK: EVT#seq)
-                                               │
+                                               
                                      DynamoDB Streams
-                                               │
-                                               ▼
+                                               
+                                               
                                        Outbox SQS Queue
-                                               │
-                                               ▼
+                                               
+                                               
                                     outbox-publisher Lambda
-                                               │
-                                               ▼
+                                               
+                                               
                                           EventBridge
                                          /           \
                                         /             \
-                  ┌────────────────────/               \──────────────────┐
-                  │ Orchestration Side                  │ Query Side       │
-                  └────────────────────┐               └──────────────────┘
-                                       ▼                                  ▼
+                  /               \
+                   Orchestration Side                   Query Side       
+                                 
+                                                                         
                              Step Functions Engine           execution-projection Lambda
-                             (Per-version ASL)                            │
-                                       │                                  ▼
+                             (Per-version ASL)                            
+                                                                         
                                Activity Workers                  DynamoDB Read Model
                             (Node.js / Lambda Token)             (Current Execution State)
-                                       │                                  │
-                                       ▼                                  ▼
+                                                                         
+                                                                         
                               POST /api/v1/step-results               query-api (TypeScript / Lambda)
-                                   (command-api)                          │
-                                                                          ▼
+                                   (command-api)                          
+                                                                          
                                                                      Dashboard / UI
 ```
 

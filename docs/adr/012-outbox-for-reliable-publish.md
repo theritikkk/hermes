@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Command handlers must append to DynamoDB **and** publish to EventBridge. If the append succeeds but publish fails, projections and SFN never see the event — split-brain between store and consumers.
+Command handlers must append to DynamoDB **and** publish to EventBridge. If the append succeeds but publish fails, projections and SFN never see the event  split-brain between store and consumers.
 
 ## Decision
 
@@ -30,7 +30,7 @@ Phase 1: inline publish after append with retry; outbox republisher Lambda as ba
 **Negative**
 
 - Small window of eventual publish latency.
-- Must handle duplicate publishes (consumers idempotent — ADR-008).
+- Must handle duplicate publishes (consumers idempotent  ADR-008).
 
 ## Alternatives Considered
 

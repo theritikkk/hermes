@@ -1,5 +1,5 @@
 {
-  "Comment": "Hermes document-pipeline v1 — validate → ocr → classify",
+  "Comment": "Hermes document-pipeline v1  validate  ocr  classify",
   "StartAt": "Validate",
   "States": {
     "Validate": {

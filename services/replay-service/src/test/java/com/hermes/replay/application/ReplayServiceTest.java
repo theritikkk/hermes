@@ -37,11 +37,15 @@ class ReplayServiceTest {
                 "evt-2", "STEP_COMPLETED", "EXECUTION", "exec-123",
                 "tenant-1", "corr-1", Instant.now(), 2, Map.of("stepName", "validate")
         );
+        DomainEvent event3 = new DomainEvent(
+                "evt-3", "WORKFLOW_EXECUTION_COMPLETED", "EXECUTION", "exec-123",
+                "tenant-1", "corr-1", Instant.now(), 3, Map.of()
+        );
 
         when(eventStoreReader.loadEventStream(anyString(), eq("exec-123")))
-                .thenReturn(List.of(event1, event2));
+                .thenReturn(List.of(event1, event2, event3));
 
-        ReplayExecutionRequest request = new ReplayExecutionRequest("exec-123", null, true, "Testing replay");
+        ReplayExecutionRequest request = new ReplayExecutionRequest("exec-123", null, null, null, true, "Testing replay");
         TenantId tenantId = new TenantId("tenant-1");
 
         ReplayExecutionResponse response = replayService.replayExecution(request, tenantId);
@@ -50,8 +54,8 @@ class ReplayServiceTest {
         assertEquals("exec-123", response.getExecutionId());
         assertEquals("tenant-1", response.getTenantId());
         assertEquals("COMPLETED", response.getStatus());
-        assertEquals(2, response.getEventsReplayed());
-        assertEquals(1, response.getStepsSkipped());
+        assertEquals(3, response.getEventsReplayed());
+        assertEquals(0, response.getStepsSkipped());
         assertTrue(response.getReplayedStepNames().contains("validate"));
     }
 }

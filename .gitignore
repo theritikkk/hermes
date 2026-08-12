@@ -43,5 +43,10 @@ terraform.log
 provider.log
 graph.dot
 
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Generic logs
 *.log

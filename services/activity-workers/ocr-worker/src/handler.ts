@@ -1,7 +1,7 @@
 import type { Handler } from 'aws-lambda';
 import { runActivity, ActivityInput } from '@hermes/activity-runner';
 
-async function ocr(input: ActivityInput): Promise<Record<string, unknown>> {
+export async function ocr(input: ActivityInput): Promise<Record<string, unknown>> {
   // Phase 1 stub: real OCR (Tesseract container) in Phase 2
   const detectedType = (input.priorOutput?.detectedType as string) ?? 'unknown';
   return {

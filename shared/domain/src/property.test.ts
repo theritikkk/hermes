@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { EventEnvelope } from './index';
+import { EventEnvelope, idempotencyKey, aggregatePk, eventSk } from './index';
 
 interface AggregateState {
   sequence: number;
@@ -76,5 +76,46 @@ describe('Property-Based Domain Invariant Testing', () => {
       () => applyEvent(state, invalidEvent),
       /Invariant Violation: terminal state 'COMPLETED' cannot transition/,
     );
+  });
+
+  test('idempotencyKey is deterministic across 200 random inputs', () => {
+    for (let i = 0; i < 200; i++) {
+      const execId = `exec-${Math.random().toString(36).substring(7)}`;
+      const stepName = `step-${Math.random().toString(36).substring(7)}`;
+      const key1 = idempotencyKey(execId, stepName);
+      const key2 = idempotencyKey(execId, stepName);
+      assert.equal(key1, key2);
+      assert.equal(key1, `${execId}#${stepName}`);
+    }
+  });
+
+  test('aggregatePk format invariant check', () => {
+    const pk1 = aggregatePk('WorkflowExecution', '123');
+    assert.equal(pk1, 'AGG#WorkflowExecution#123');
+    
+    const pk2 = aggregatePk('Asset', '456');
+    assert.equal(pk2, 'AGG#Asset#456');
+    
+    assert.ok(pk1.startsWith('AGG#'));
+  });
+
+  test('eventSk lexicographical sort ordering matches numeric sequence ordering for 500 random sequences', () => {
+    const sequences = Array.from({ length: 500 }, () => Math.floor(Math.random() * 1000000));
+    const eventIds = Array.from({ length: 500 }, () => `evt-${Math.random().toString(36).substring(7)}`);
+    
+    const items = sequences.map((seq, i) => ({
+      seq,
+      sk: eventSk(seq, eventIds[i])
+    }));
+    
+    // Sort by numeric sequence
+    const numericSorted = [...items].sort((a, b) => a.seq - b.seq);
+    
+    // Sort by lexicographical SK
+    const lexicographicalSorted = [...items].sort((a, b) => a.sk.localeCompare(b.sk));
+    
+    for (let i = 0; i < 500; i++) {
+      assert.equal(numericSorted[i].sk, lexicographicalSorted[i].sk);
+    }
   });
 });

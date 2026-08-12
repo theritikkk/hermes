@@ -7,19 +7,39 @@ interface State {
   count: number;
 }
 
+const reducer = (state: State, _event: EventEnvelope) => ({ count: state.count + 1 });
+
 describe('Aggregate Snapshotting Engine', () => {
-  test('shouldCreateSnapshot evaluates threshold correctly (every 50 events)', () => {
-    assert.equal(shouldCreateSnapshot(49, 50), false);
-    assert.equal(shouldCreateSnapshot(50, 50), true);
-    assert.equal(shouldCreateSnapshot(100, 50), true);
-    assert.equal(shouldCreateSnapshot(101, 50), false);
+  describe('shouldCreateSnapshot', () => {
+    test('returns true for multiples of threshold (50, 100)', () => {
+      assert.equal(shouldCreateSnapshot(50, 50), true);
+      assert.equal(shouldCreateSnapshot(100, 50), true);
+    });
+
+    test('returns false for non-multiples (0, 1, 49, 51)', () => {
+      assert.equal(shouldCreateSnapshot(0, 50), false);
+      assert.equal(shouldCreateSnapshot(1, 50), false);
+      assert.equal(shouldCreateSnapshot(49, 50), false);
+      assert.equal(shouldCreateSnapshot(51, 50), false);
+    });
+
+    test('respects custom threshold', () => {
+      assert.equal(shouldCreateSnapshot(10, 10), true);
+      assert.equal(shouldCreateSnapshot(20, 10), true);
+      assert.equal(shouldCreateSnapshot(5, 10), false);
+      assert.equal(shouldCreateSnapshot(15, 10), false);
+    });
+    
+    test('default threshold is 50', () => {
+      assert.equal(shouldCreateSnapshot(50), true);
+      assert.equal(shouldCreateSnapshot(100), true);
+      assert.equal(shouldCreateSnapshot(49), false);
+    });
   });
 
-  test('loadSnapshotAndReplay folds ONLY events after snapshot sequence (1,000 total events, snapshot at 500)', () => {
-    const aggregateId = 'exec-snapshot-1000';
-
-    // 1. Generate 1,000 historical events
-    const events: EventEnvelope[] = Array.from({ length: 1000 }, (_, i) => ({
+  describe('loadSnapshotAndReplay', () => {
+    const aggregateId = 'exec-snapshot';
+    const events: EventEnvelope[] = Array.from({ length: 100 }, (_, i) => ({
       eventId: `evt-${i + 1}`,
       eventType: 'StepCompleted',
       eventVersion: 1,
@@ -32,21 +52,74 @@ describe('Aggregate Snapshotting Engine', () => {
       payload: { value: 1 },
     }));
 
-    // 2. Mock a Snapshot saved at sequence 500
-    const snapshot: AggregateSnapshot<State> = {
-      aggregateId,
-      sequence: 500,
-      state: { count: 500 },
-      createdAt: '2026-08-11T12:00:00.000Z',
-    };
+    test('folds ONLY events after snapshot sequence', () => {
+      const snapshot: AggregateSnapshot<State> = {
+        aggregateId,
+        sequence: 50,
+        state: { count: 50 },
+        createdAt: '2026-08-11T12:00:00.000Z',
+      };
 
-    const reducer = (state: State, _event: EventEnvelope) => ({ count: state.count + 1 });
+      const result = loadSnapshotAndReplay(snapshot, events, { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 50);
+      assert.equal(result.finalState.count, 100); 
+    });
 
-    // 3. Replay with Snapshot
-    const result = loadSnapshotAndReplay(snapshot, events, { count: 0 }, reducer);
+    test('correctly starts state from snapshot state', () => {
+      const snapshot: AggregateSnapshot<State> = {
+        aggregateId,
+        sequence: 90,
+        state: { count: 90 },
+        createdAt: new Date().toISOString(),
+      };
 
-    // 4. Assert final state is 1,000 and ONLY 500 events (501 to 1000) were folded!
-    assert.equal(result.finalState.count, 1000);
-    assert.equal(result.eventsFolded, 500);
+      const result = loadSnapshotAndReplay(snapshot, events, { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 10);
+      assert.equal(result.finalState.count, 100);
+    });
+
+    test('handles null snapshot by starting from initial state', () => {
+      const result = loadSnapshotAndReplay(null, events, { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 100);
+      assert.equal(result.finalState.count, 100);
+    });
+    
+    test('handles no events to apply after snapshot', () => {
+      const snapshot: AggregateSnapshot<State> = {
+        aggregateId,
+        sequence: 100,
+        state: { count: 100 },
+        createdAt: new Date().toISOString(),
+      };
+
+      const result = loadSnapshotAndReplay(snapshot, events, { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 0);
+      assert.equal(result.finalState.count, 100);
+    });
+    
+    test('handles empty events array with null snapshot', () => {
+      const result = loadSnapshotAndReplay(null, [], { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 0);
+      assert.deepEqual(result.finalState, { count: 0 });
+    });
+    
+    test('handles empty events array with snapshot', () => {
+      const snapshot: AggregateSnapshot<State> = {
+        aggregateId,
+        sequence: 3,
+        state: { count: 3 },
+        createdAt: new Date().toISOString(),
+      };
+
+      const result = loadSnapshotAndReplay(snapshot, [], { count: 0 }, reducer);
+      
+      assert.equal(result.eventsFolded, 0);
+      assert.deepEqual(result.finalState, snapshot.state);
+    });
   });
 });

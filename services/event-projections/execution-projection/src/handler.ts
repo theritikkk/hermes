@@ -17,7 +17,7 @@ const doc = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true },
 });
 
-export const handler: Handler = async (event: EventBridgeEvent<string, IntegrationEvent>) => {
+export const handler = async (event: EventBridgeEvent<string, IntegrationEvent>): Promise<void> => {
   const detail = event.detail;
   const executionTable = process.env.EXECUTION_READ_MODEL_TABLE!;
   const workflowTable = process.env.WORKFLOW_READ_MODEL_TABLE;

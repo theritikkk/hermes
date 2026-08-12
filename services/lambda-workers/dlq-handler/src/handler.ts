@@ -73,8 +73,8 @@ export const handler = async (event: SQSEvent): Promise<void> => {
       10,
     );
     const queueName =
-      (record.eventSourceARN ?? '').split(':').pop() ??
-      process.env.DLQ_NAME ??
+      (record.eventSourceARN ? record.eventSourceARN.split(':').pop() : undefined) ||
+      process.env.DLQ_NAME ||
       'unknown';
 
     const parsed = parseMessage(record.body);

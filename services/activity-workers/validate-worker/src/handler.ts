@@ -1,7 +1,7 @@
 import type { Handler } from 'aws-lambda';
 import { runActivity, ActivityInput } from '@hermes/activity-runner';
 
-async function validate(input: ActivityInput): Promise<Record<string, unknown>> {
+export async function validate(input: ActivityInput): Promise<Record<string, unknown>> {
   if (!input.s3Key) {
     throw new Error('s3Key is required for validate');
   }

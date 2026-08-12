@@ -32,21 +32,21 @@ const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
 });
 const eventBridge = new EventBridgeClient({});
 
-const STALE_MINUTES = parseInt(process.env.STALE_THRESHOLD_MINUTES ?? '5', 10);
-const PAGE_SIZE = 25; // max items to republish per invocation
+const PAGE_SIZE = 25;
 
 export const handler = async (event: ScheduledEvent): Promise<void> => {
   const tableName = process.env.EVENT_STORE_TABLE;
   const busName = process.env.EVENT_BUS_NAME;
+  const staleMinutes = parseInt(process.env.STALE_THRESHOLD_MINUTES ?? '5', 10);
 
   if (!tableName || !busName) {
     throw new Error('Missing EVENT_STORE_TABLE or EVENT_BUS_NAME');
   }
 
   const log = createLogger({ service: 'outbox-republisher' });
-  const cutoff = new Date(Date.now() - STALE_MINUTES * 60 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - staleMinutes * 60 * 1000).toISOString();
 
-  log.info('scanning for stale outbox events', { cutoff, staleMinutes: STALE_MINUTES });
+  log.info('scanning for stale outbox events', { cutoff, staleMinutes });
 
   // Scan for PENDING events older than the cutoff. A GSI on outboxStatus would
   // be more efficient at scale; a full scan is acceptable for the dev environment

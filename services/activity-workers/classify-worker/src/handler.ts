@@ -1,7 +1,7 @@
 import type { Handler } from 'aws-lambda';
 import { runActivity, ActivityInput } from '@hermes/activity-runner';
 
-async function classify(input: ActivityInput): Promise<Record<string, unknown>> {
+export async function classify(input: ActivityInput): Promise<Record<string, unknown>> {
   const text = (input.priorOutput?.extractedText as string) ?? '';
   const label = text.includes('invoice') ? 'invoice' : 'general';
   return {

@@ -13,7 +13,7 @@
 set -euo pipefail
 
 ENVIRONMENT="${1:-dev}"
-AWS_REGION="${AWS_REGION:-us-east-1}"
+AWS_REGION="${AWS_REGION:-ap-south-1}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$ROOT/infra/.build"
 

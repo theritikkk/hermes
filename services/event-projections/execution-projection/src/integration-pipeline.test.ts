@@ -21,10 +21,11 @@ interface ReadModelExecution {
 }
 
 /**
- * End-to-End Integration Pipeline Test
- * Exercises: Command API -> Event Store -> Outbox/EventBridge Bus -> CQRS Projections -> Read State
+ * Subsystem Integration Pipeline Test
+ * Exercises in-process contract integration across: Command API -> Event Store -> Outbox/EventBridge Bus -> CQRS Projections -> Read State
+ * (For full live cloud E2E validation against deployed AWS resources, see scripts/smoke-test.sh & scripts/e2e-validation.ts)
  */
-describe('End-to-End System Integration Flow', () => {
+describe('Subsystem Integration Pipeline Flow', () => {
   const tenantId = 'tenant-corp-acme';
   const assetId = 'asset-doc-9901';
   const s3Key = 'documents/2026/invoice-9901.pdf';

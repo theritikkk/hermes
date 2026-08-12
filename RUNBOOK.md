@@ -528,3 +528,67 @@ aws stepfunctions list-executions \
   --region ap-south-1 --max-results 1 \
   --query 'executions[0].{status:status,startDate:startDate}'
 ```
+
+---
+
+## 11. EventBridge Archive Replay Operational Runbook
+
+Hermes provisions an immutable 90-day EventBridge Event Archive (`${local.prefix}-events-archive`) attached to the `hermes-dev-events` bus (`infra/modules/eventbridge/main.tf`).
+
+### When to Initiate an Event Replay
+
+Use event replay when:
+1. A downstream projection Lambda (e.g. `execution-projection`, `opensearch-projection`) was down or misconfigured and missed event delivery.
+2. A bug in a projection function was fixed, requiring historical read model state to be re-computed.
+3. A disaster recovery or new region bring-up requires populating CQRS read models from historical integration events.
+
+### Step 1 — Identify Replay Time Window & Event Types
+
+Determine the start and end timestamp (ISO 8601 UTC) and event types to reprocess:
+
+```bash
+EXPORT_START="2026-08-12T00:00:00Z"
+EXPORT_END="2026-08-12T14:00:00Z"
+BUS_ARN="arn:aws:events:ap-south-1:<account_id>:event-bus/hermes-dev-events"
+ARCHIVE_ARN="arn:aws:events:ap-south-1:<account_id>:archive/hermes-dev-events-archive"
+```
+
+### Step 2 — Start the Replay
+
+Execute `aws events start-replay` with event-type filtering:
+
+```bash
+aws events start-replay \
+  --event-source-arn "$ARCHIVE_ARN" \
+  --destination "$BUS_ARN" \
+  --replay-name "projection-recovery-$(date +%Y%m%d%H%M%S)" \
+  --event-start-time "$EXPORT_START" \
+  --event-end-time "$EXPORT_END" \
+  --event-pattern '{"detail-type":["WorkflowExecutionStarted","StepCompleted","StepFailed","WorkflowExecutionCompleted"]}' \
+  --region ap-south-1
+```
+
+### Step 3 — Monitor Replay Progress
+
+Check replay status (`RUNNING`, `COMPLETED`, or `FAILED`):
+
+```bash
+aws events describe-replay \
+  --replay-name "projection-recovery-<timestamp>" \
+  --region ap-south-1
+```
+
+Or list all active replays:
+
+```bash
+aws events list-replays \
+  --event-source-arn "$ARCHIVE_ARN" \
+  --region ap-south-1
+```
+
+### Expected Replay Behavior & Idempotency Controls
+
+- **Re-delivery**: EventBridge re-emits events into `hermes-dev-events` with original payload timestamps intact.
+- **Consumer Idempotency**: All projection Lambdas (`execution-projection`, `opensearch-projection`, `usage-projection`) are idempotent. They check event sequence numbers and use conditional DynamoDB updates to avoid double-counting or overwriting newer state.
+- **Step Functions Protection**: During replay, EventBridge targets for Step Functions use state-machine execution naming derived from `executionId`. Step Functions rejects duplicate execution names gracefully (`ExecutionAlreadyStarted`), preventing duplicate workflow triggers.
+

@@ -24,7 +24,33 @@ Hermes core is **100% TypeScript / Node 20 Lambda-native**, with explicit archit
 
 ## Architecture
 
+```text
+        +----------------------+
+        |   Command API        |
+        +----------+-----------+
+                   |
+                   v
+           Event Store (DynamoDB)
+                   |
+            Transactional Outbox
+                   |
+                   v
+             EventBridge Bus
+      +------------+-------------+
+      |                          |
+      v                          v
+Step Functions           Read Projections
+      |                          |
+      v                          v
+Activity Workers         Query API
+      |
+      v
+Event Store
 ```
+
+### Detailed Component Flow
+
+```text
 [ Client / Tenant App ] 
          │  (JWT Token + x-tenant-id)
          ▼

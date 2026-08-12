@@ -78,3 +78,20 @@ resource "aws_cloudwatch_metric_alarm" "sfn_failures" {
   alarm_actions = [var.sns_topic_arn]
   tags          = var.tags
 }
+
+# Lambda execution errors
+resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
+  alarm_name          = "${var.prefix}-lambda-errors"
+  alarm_description   = "Lambda execution errors detected across platform"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "notBreaching"
+
+  alarm_actions = [var.sns_topic_arn]
+  tags          = var.tags
+}

@@ -15,8 +15,10 @@
     "build": "npm run build -w @hermes/domain && npm run build -w @hermes/observability && npm run build -w @hermes/event-store && npm run build -w @hermes/command-handlers && npm run build -w @hermes/activity-runner && npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:coverage": "npm run test --workspaces --if-present -- --experimental-test-coverage",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
+  
   "devDependencies": {
     "@types/node": "^20.14.0"
   },

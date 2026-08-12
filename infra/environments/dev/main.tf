@@ -846,6 +846,7 @@ module "eventbridge_sfn_target" {
   detail_type       = "WorkflowExecutionStarted"
   state_machine_arn = module.workflow_registry.workflow_arns["document-pipeline-v1"]
   role_arn          = module.eventbridge_sfn_role.role_arn
+  dlq_arn           = module.outbox_queue.dlq_arn
 }
 
 # Replay Checkpoints S3 Bucket 

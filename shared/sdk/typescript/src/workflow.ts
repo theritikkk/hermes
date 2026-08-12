@@ -180,7 +180,7 @@ export class WorkflowBuilder {
       name: this._name,
       version: this._version,
       steps: [...this._steps],
-      compensation: this._compensation,
+      ...(this._compensation ? { compensation: this._compensation } : {}),
     };
   }
 

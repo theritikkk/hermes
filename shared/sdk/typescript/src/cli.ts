@@ -96,6 +96,7 @@ async function handleWorkflowRegister(args: string[]) {
   const res = await client.registerWorkflow({
     name: values.name || json.name || 'document-pipeline',
     version: values.version ? parseInt(values.version, 10) : (json.version || 1),
+    steps: json.steps || [],
     asl: json.asl || json,
   });
 
@@ -131,10 +132,12 @@ async function handleExecutionStart(args: string[]) {
     workflowName: values.workflow,
     workflowVersion: values.version ? parseInt(values.version, 10) : 1,
     assetId: values.asset,
-    idempotencyKey: values.idempotencyKey,
+    ...(values.idempotencyKey ? { idempotencyKey: values.idempotencyKey } : {}),
   });
 
-  console.log(`[STARTED] Execution started: ${res.executionId} (Status: ${res.status})`);
+  console.log(`[EXECUTION] Execution Started: ${res.executionId}`);
+  console.log(`   Status:       ${res.status}`);
+  console.log(`   Message:     ${res.message}`);
 }
 
 async function handleExecutionStatus(args: string[]) {
@@ -159,10 +162,7 @@ async function handleExecutionStatus(args: string[]) {
   });
 
   const res = await client.getExecutionStatus(executionId);
-  console.log(`[STATUS] Execution Status: ${res.executionId}`);
-  console.log(`   Workflow: ${res.workflowName} v${res.workflowVersion}`);
-  console.log(`   Status:   ${res.status}`);
-  console.log(`   Started:  ${res.startedAt}`);
+  console.log(JSON.stringify(res, null, 2));
 }
 
 async function handleDlqList(args: string[]) {
@@ -214,7 +214,7 @@ async function handleReplayTrigger(args: string[]) {
 
   const res = await client.replayExecution({
     executionId,
-    fromStep: values['from-step'],
+    ...(values['from-step'] ? { fromStep: values['from-step'] } : {}),
     reason: values.reason || 'CLI trigger',
   });
 

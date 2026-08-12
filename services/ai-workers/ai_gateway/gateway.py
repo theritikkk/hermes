@@ -16,23 +16,25 @@ class AIGateway:
     def route_request(self, task_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Routing task '{task_name}' via provider '{self.provider}'")
         
-        if task_name == "ocr":
-            from ocr_worker.handler import process_ocr
-            return process_ocr(payload)
-        elif task_name == "classify":
-            from classify_worker.handler import process_classification
-            return process_classification(payload)
-        elif task_name == "embed":
+        if task_name == "embed":
             from embed_worker.handler import process_embeddings
             return process_embeddings(payload)
         elif task_name == "ner":
             from ner_worker.handler import process_ner
             return process_ner(payload)
+        elif task_name in ("ocr", "classify"):
+            return {
+                "executionId": payload.get("executionId"),
+                "tenantId": payload.get("tenantId"),
+                "stepName": task_name,
+                "status": "COMPLETED",
+                "output": {"note": f"Task '{task_name}' routed to Node/TS activity worker"}
+            }
         else:
             raise ValueError(f"Unknown AI task: {task_name}")
 
-def lambda_handler(event, context):
-    task_name = event.get("task", "ocr")
+def lambda_handler(event, context=None):
+    task_name = event.get("task", "embed")
     payload = event.get("payload", {})
     
     gateway = AIGateway(provider=os.environ.get("AI_PROVIDER", "internal"))

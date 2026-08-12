@@ -4,7 +4,8 @@
   "private": true,
   "main": "dist/handler.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "node --import tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.637.0",
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/aws-lambda": "^8.10.143",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   }
 }

@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/handler.js",
-  "scripts": { "build": "tsc" },
+  "scripts": { "build": "tsc", "test": "node --import tsx --test src/**/*.test.ts" },
   "dependencies": {
     "@hermes/activity-runner": "*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.143",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
     "typescript": "^5.5.4"
   }
 }

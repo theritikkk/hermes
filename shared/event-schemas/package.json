@@ -1,0 +1,8 @@
+{
+  "name": "@hermes/event-schemas",
+  "version": "1.0.0",
+  "description": "Event JSON schemas",
+  "scripts": {
+    "test": "node --import tsx --test *.test.ts"
+  }
+}

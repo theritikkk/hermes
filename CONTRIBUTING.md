@@ -77,6 +77,8 @@ hermes/
 
 ## Development & Testing Workflow
 
+> For the full testing guide — including the Java (`admin-service`, `replay-service`) and Python (`ai-workers`) suites, coverage, and troubleshooting — see [`TESTING.md`](TESTING.md).
+
 ### 1. Creating a Feature Branch
 
 ```bash
@@ -120,6 +122,6 @@ AWS_REGION=ap-south-1 ./scripts/smoke-test.sh
 
 ## Pull Request Guidelines
 
-1. **Self-Review**: Ensure `npm run build` and `npm test` pass cleanly.
+1. **Self-Review**: Ensure `npm run build` and `npm test` pass cleanly. If your change touches `admin-service`, `replay-service`, or `ai-workers`, also run `mvn test` / `pytest` directly (or `./scripts/verify-all.sh`) — CI currently only runs the TypeScript suite (see [`TESTING.md`](TESTING.md#10-what-ci-actually-runs)).
 2. **Commit Messages**: Use clean, descriptive conventional commits (`feat: add usage limit alarm`, `fix: handle SQS retry timeout`).
 3. **CI Pipeline**: PRs must pass the GitHub Actions CI pipeline (`.github/workflows/ci.yml`).

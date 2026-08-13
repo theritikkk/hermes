@@ -58,9 +58,11 @@ Hermes includes a developer shortcut script for local tasks:
 ./scripts/dev.sh
 ```
 
+> **Note:** Option 1 below runs `npm test` only — it does **not** run `npm run build` first, and it does not cover the Java or Python suites. For a first-time run, or after pulling changes to `shared/*`, run `npm run build` manually before using this option. See [`TESTING.md`](TESTING.md) for the complete testing guide.
+
 ### Script Options
 
-1. **`1` — Run Unit Tests**: Executes `npm test` across all monorepo workspaces.
+1. **`1` — Run Unit Tests**: Executes `npm test` (TypeScript workspaces only) across all monorepo workspaces.
 2. **`2` — Build & Bundle**: Compiles TypeScript and packages Lambda zips in `infra/.build/`.
 3. **`3` — Deploy to AWS**: Uploads zip archives to AWS Lambda in `ap-south-1`.
 4. **`4` — Run Smoke Test**: Executes the 8-layer critical path smoke test against live AWS infrastructure.

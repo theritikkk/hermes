@@ -103,9 +103,11 @@ Event Store
 
 ### 1. Run Workspace Unit Tests
 ```bash
+npm install
+npm run build
 npm test
 ```
-*Executes 39 unit & integration test cases across all workspace packages via Node's native test runner in ~1.2s.*
+*Executes 234 unit, integration, property-based, chaos, and contract test cases across all TypeScript workspace packages via Node's native test runner in ~1–2s. The build step is required first — services import shared packages (`@hermes/domain`, `@hermes/event-store`, etc.) from their compiled `dist/` output. See [`TESTING.md`](TESTING.md) for the full testing guide, including the Java and Python test suites.*
 
 ### 2. Interactive Developer CLI
 ```bash
@@ -127,6 +129,12 @@ AWS_REGION=ap-south-1 ./scripts/deploy-lambdas.sh dev
 ```bash
 AWS_REGION=ap-south-1 ./scripts/smoke-test.sh
 ```
+
+### 5. Run the Full Cross-Language Verification Suite
+```bash
+./scripts/verify-all.sh
+```
+*Runs TypeScript, Java (`admin-service`, `replay-service`), and Python (`ai-workers`) tests plus Terraform validation in one pass — see [`TESTING.md`](TESTING.md).*
 
 ---
 
@@ -179,6 +187,7 @@ Hermes includes complete architectural defense and interview preparation materia
 - [**SCHEMA_VERSIONING.md**](docs/SCHEMA_VERSIONING.md) — Event schema evolution (v1 → v2) & transparent upcaster migration strategy
 - [**COST_ESTIMATES.md**](COST_ESTIMATES.md) — Operational AWS cost breakdowns across Low, Mid, and High scale profiles
 - [**ARCHITECTURE.md**](ARCHITECTURE.md) — Request flow diagrams, failure recovery flows & component mapping
+- [**TESTING.md**](TESTING.md) — Full testing guide: TypeScript/Java/Python suites, coverage, CI gaps, and troubleshooting
 - [**RUNBOOK.md**](RUNBOOK.md) — Deployment, troubleshooting playbooks, and disaster recovery procedures
 - [**INTERVIEW_GUIDE.md**](INTERVIEW_GUIDE.md) — Architectural defense, technical Q&A, and elevator pitches (30s, 2m, 10m, 30m)
 - [**TRADE_OFFS.md**](TRADE_OFFS.md) — Pros & Cons matrix for every architectural component

@@ -218,13 +218,13 @@ For example:
 
 ```markdown
 ## CloudWatch Dashboard
-![CloudWatch Dashboard](screenshots/cloudwatch/dashboard.png)
-
-## X-Ray Trace
-![X-Ray](screenshots/xray/service-map.png)
+![CloudWatch Dashboard](screenshots/aws/tests/test-03/evidence/11-aws-cloudwatch-dashboard.png)
 
 ## Step Functions
-![Execution Graph](screenshots/step-functions/execution-graph.png)
+![Step Functions](screenshots/aws/tests/test-03/evidence/03-aws-step-functions.png)
+
+## EventBridge Bus
+![EventBridge Bus](screenshots/aws/tests/test-03/evidence/04-aws-eventbridge-bus.png)
 ```
 
 ---

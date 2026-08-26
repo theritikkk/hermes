@@ -78,8 +78,22 @@ CloudWatch monitoring displays and metrics captured during the non-production lo
 
 1. **Observed CloudWatch Metrics**:
    - `AWS/Lambda/Errors` for `hermes-dev-command-api` remained at **0.0** during the execution window.
-   - `AWS/Lambda/Throttles` graph displays throttle spikes on `hermes-dev-command-api` during burst execution (visible in [`evidence/22-load-test-cloudwatch-lambda-throttles.png`](evidence/22-load-test-cloudwatch-lambda-throttles.png)).
-   - `AWS/Lambda/Invocations` and runtime duration are visible in [`evidence/21-load-test-cloudwatch-lambda-metrics.png`](evidence/21-load-test-cloudwatch-lambda-metrics.png).
+   - `AWS/Lambda/Throttles` graph displays throttle spikes on `hermes-dev-command-api` during burst execution:
+
+   ![CloudWatch Lambda Throttles](evidence/22-load-test-cloudwatch-lambda-throttles.png)
+
+   - `AWS/Lambda/Invocations` and runtime duration metrics across the non-production load test run:
+
+   ![CloudWatch Lambda Metrics](evidence/21-load-test-cloudwatch-lambda-metrics.png)
+
+   - `POST /assets` HTTP API Gateway route mapping to `hermes-dev-command-api`:
+
+   ![API Gateway Route Integration](evidence/23-load-test-api-gateway-route-integration.png)
+
+   - 18 active Lambda execution container log streams on `2026/08/26`:
+
+   ![CloudWatch Log Streams](evidence/24-load-test-cloudwatch-log-streams.png)
+
 2. **Reconciliation Statement**:
    > [!NOTE]
    > CloudWatch invocation count does not directly reconcile with API request count from the load-test harness; the available evidence is insufficient to establish a one-to-one relationship.

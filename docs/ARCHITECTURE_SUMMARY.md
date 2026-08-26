@@ -73,8 +73,8 @@ The event store table (`hermes-dev-event-store`) uses a single-table layout supp
 ## 3. The 4 Core Platform Pillars
 
 ### Pillar 1: Time-Travel Replay Engine (`services/replay-service`)
-- **State Machine**: [`ExecutionStateProjector.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/replay-service/src/main/java/com/hermes/replay/application/ExecutionStateProjector.java) pure domain fold engine.
-- **Snapshot Acceleration**: Reads the latest snapshot (`SNAP#`) via [`SnapshotStore.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/replay-service/src/main/java/com/hermes/replay/infrastructure/eventstore/SnapshotStore.java) and resumes event stream loading from `snapshot.resumeFromSequence()`.
+- **State Machine**: [`ExecutionStateProjector.java`](../services/replay-service/src/main/java/com/hermes/replay/application/ExecutionStateProjector.java) pure domain fold engine.
+- **Snapshot Acceleration**: Reads the latest snapshot (`SNAP#`) via [`SnapshotStore.java`](../services/replay-service/src/main/java/com/hermes/replay/infrastructure/eventstore/SnapshotStore.java) and resumes event stream loading from `snapshot.resumeFromSequence()`.
 - **Execution Delta**: Differentiates completed steps with valid outputs from modified steps requiring re-dispatch. Injects cached outputs into Step Functions `replayContext`.
 
 ### Pillar 2: Saga Orchestration & Compensation
@@ -83,12 +83,12 @@ The event store table (`hermes-dev-event-store`) uses a single-table layout supp
 - **Idempotency**: Maintains an in-aggregate set of completed compensation steps to safeguard against duplicate rollback attempts under activity retries.
 
 ### Pillar 3: Fluent Workflow SDK (`shared/sdk/typescript`)
-- **TypeScript DSL**: [`WorkflowBuilder`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/workflow.ts) programmatically constructs type-safe workflow definitions with retry policies, catch blocks, parallel branches, and saga configurations.
-- **ASL Compiler**: [`AslCompiler`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/workflow.ts) transforms the builder model into Amazon States Language (ASL) JSON ready for direct submission to the Step Functions `CreateStateMachine` API.
-- **TypeScript Client**: [`client.ts`](file:///Users/ritikraj/Documents/GitHub/hermes/shared/sdk/typescript/src/client.ts) zero-dependency, `fetch`-based `HermesClient` for starting executions, polling status, and calling replay endpoints.
+- **TypeScript DSL**: [`WorkflowBuilder`](../shared/sdk/typescript/src/workflow.ts) programmatically constructs type-safe workflow definitions with retry policies, catch blocks, parallel branches, and saga configurations.
+- **ASL Compiler**: [`AslCompiler`](../shared/sdk/typescript/src/workflow.ts) transforms the builder model into Amazon States Language (ASL) JSON ready for direct submission to the Step Functions `CreateStateMachine` API.
+- **TypeScript Client**: [`client.ts`](../shared/sdk/typescript/src/client.ts) zero-dependency, `fetch`-based `HermesClient` for starting executions, polling status, and calling replay endpoints.
 
 ### Pillar 4: Workflow & Event Versioning (`services/admin-service`)
-- **Version Registry**: [`WorkflowVersionRegistry.java`](file:///Users/ritikraj/Documents/GitHub/hermes/services/admin-service/src/main/java/com/hermes/admin/domain/WorkflowVersionRegistry.java) enforces a strict `DRAFT -> ACTIVE -> DEPRECATED` lifecycle.
+- **Version Registry**: [`WorkflowVersionRegistry.java`](../services/admin-service/src/main/java/com/hermes/admin/domain/WorkflowVersionRegistry.java) enforces a strict `DRAFT -> ACTIVE -> DEPRECATED` lifecycle.
 - **Version Pinning**: Executions are immutably bound to the `workflowVersion` active at trigger time.
 - **Schema Upcaster**: Event schema upcasting is handled at read time in the `@hermes/event-store` TypeScript package and via JSON Schema definitions in `shared/event-schemas/`. A chain of pure payload transformations converts older event payloads (v1 -> v2 -> v3) transparently.
 

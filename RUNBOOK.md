@@ -2,8 +2,8 @@
 
 This runbook covers every operational procedure needed to deploy, validate, and troubleshoot Hermes in a live AWS environment. It is the authoritative reference for on-call engineers.
 
-**Architecture reference:** [`ARCHITECTURE.md`](../ARCHITECTURE.md)  
-**Automated smoke test:** [`scripts/smoke-test.sh`](../scripts/smoke-test.sh)
+**Architecture reference:** [`ARCHITECTURE.md`](ARCHITECTURE.md)\
+**Automated smoke test:** [`scripts/smoke-test.sh`](scripts/smoke-test.sh)
 
 ---
 

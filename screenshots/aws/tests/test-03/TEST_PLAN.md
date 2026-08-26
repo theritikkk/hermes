@@ -41,7 +41,7 @@ flowchart TD
     QueryAPI -->|GetItem| ReadModel
 ```
 
-The system comprises 12 distinct AWS Lambda functions, 6 DynamoDB tables, 1 EventBridge custom bus with archive, 2 SQS queues (outbox + DLQ), Step Functions state machines, 2 Java Spring Boot services (`admin-service`, `replay-service`), and 1 Python AI worker service (`services/ai-workers`).
+The system comprises 13 implemented AWS Lambda services (with 12 functions visible in the initial console viewport capture), 6 DynamoDB tables, 1 EventBridge custom bus with archive, 2 SQS queues (outbox + DLQ), Step Functions state machines, 2 Java Spring Boot services (`admin-service`, `replay-service`), and 1 Python AI worker service (`services/ai-workers`).
 
 ---
 

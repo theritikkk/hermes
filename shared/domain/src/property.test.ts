@@ -100,7 +100,11 @@ describe('Property-Based Domain Invariant Testing', () => {
   });
 
   test('eventSk lexicographical sort ordering matches numeric sequence ordering for 500 random sequences', () => {
-    const sequences = Array.from({ length: 500 }, () => Math.floor(Math.random() * 1000000));
+    const seqSet = new Set<number>();
+    while (seqSet.size < 500) {
+      seqSet.add(Math.floor(Math.random() * 10000000));
+    }
+    const sequences = Array.from(seqSet);
     const eventIds = Array.from({ length: 500 }, () => `evt-${Math.random().toString(36).substring(7)}`);
     
     const items = sequences.map((seq, i) => ({

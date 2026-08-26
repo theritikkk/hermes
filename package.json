@@ -16,7 +16,8 @@
     "test": "npm run test --workspaces --if-present",
     "test:coverage": "npm run test --workspaces --if-present -- --experimental-test-coverage",
     "lint": "npm run lint --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test:load": "node --import tsx scripts/load-test.ts"
   },
   
   "devDependencies": {

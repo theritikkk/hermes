@@ -20,13 +20,13 @@ NODE_TEST_FILES=$(find shared services -name "*.test.ts" | grep -v "node_modules
 
 if [ -n "$NODE_TEST_FILES" ]; then
   if node --import tsx --test $NODE_TEST_FILES; then
-    echo "✅ TypeScript Tests: PASSED"
+    echo "[PASSED] TypeScript Tests"
   else
-    echo "❌ TypeScript Tests: FAILED"
+    echo "[FAILED] TypeScript Tests"
     ERRORS=$((ERRORS + 1))
   fi
 else
-  echo "⚠️ No TypeScript test files found!"
+  echo "[WARN] No TypeScript test files found!"
 fi
 
 echo ""
@@ -40,12 +40,12 @@ for service in services/admin-service services/replay-service; do
   if [ -d "$service" ]; then
     echo "--> Testing $service with Maven & JaCoCo..."
     if (cd "$service" && mvn test); then
-      echo "  ✅ $service: PASSED"
+      echo "  [PASSED] $service"
       if [ -f "$service/target/site/jacoco/index.html" ]; then
-        echo "  📊 JaCoCo Report generated at $service/target/site/jacoco/index.html"
+        echo "  [REPORT] JaCoCo Report generated at $service/target/site/jacoco/index.html"
       fi
     else
-      echo "  ❌ $service: FAILED"
+      echo "  [FAILED] $service"
       ERRORS=$((ERRORS + 1))
     fi
   fi
@@ -61,9 +61,9 @@ echo "-----------------------------------------------------------------"
 if [ -d "services/ai-workers" ]; then
   echo "--> Running pytest in services/ai-workers..."
   if (cd services/ai-workers && PYTHONPATH=. pytest -v); then
-    echo "✅ Python AI Workers: PASSED"
+    echo "[PASSED] Python AI Workers"
   else
-    echo "❌ Python AI Workers: FAILED"
+    echo "[FAILED] Python AI Workers"
     ERRORS=$((ERRORS + 1))
   fi
 fi
@@ -77,9 +77,9 @@ echo "-----------------------------------------------------------------"
 
 if [ -f "scripts/terraform-validate.sh" ]; then
   if ./scripts/terraform-validate.sh; then
-    echo "✅ Terraform Validation: PASSED"
+    echo "[PASSED] Terraform Validation"
   else
-    echo "❌ Terraform Validation: FAILED"
+    echo "[FAILED] Terraform Validation"
     ERRORS=$((ERRORS + 1))
   fi
 fi
@@ -100,26 +100,26 @@ if [ -x "$TSC_BIN" ]; then
     if (cd "$pkg_dir" && "$TSC_BIN" --noEmit -p . 2>/dev/null); then
       true
     else
-      echo "  ❌ TS compilation error in $pkg_dir"
+      echo "  [FAILED] TS compilation error in $pkg_dir"
       BUILD_FAILED=1
     fi
   done
 fi
 
 if [ $BUILD_FAILED -eq 0 ]; then
-  echo "✅ TypeScript Compilation: PASSED"
+  echo "[PASSED] TypeScript Compilation"
 else
-  echo "❌ TypeScript Compilation: FAILED"
+  echo "[FAILED] TypeScript Compilation"
   ERRORS=$((ERRORS + 1))
 fi
 
 echo ""
 echo "================================================================="
 if [ $ERRORS -eq 0 ]; then
-  echo "🎉 VERIFICATION COMPLETE: ALL CHECKS PASSED SUCCESSFULLY!"
-  echo "   Hermes is verified production-ready."
+  echo "VERIFICATION COMPLETE: ALL CHECKS PASSED SUCCESSFULLY!"
+  echo "Hermes is verified production-ready."
   exit 0
 else
-  echo "💥 VERIFICATION FAILED: $ERRORS check(s) failed."
+  echo "VERIFICATION FAILED: $ERRORS check(s) failed."
   exit 1
 fi

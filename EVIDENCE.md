@@ -14,8 +14,9 @@ This document provides a single index of all empirical engineering evidence, val
 | **Code Coverage** | V8 / JaCoCo / Pytest Coverage Reports | 100% Core Domain & Store |
 | **Concurrency & Invariants** | Property & Chaos Tests (`shared/domain`, `shared/event-store`) | Validated |
 | **Monorepo Verification Pipeline** | Single entry point ([`scripts/verify-all.sh`](scripts/verify-all.sh)) | Exit Code 0 |
+| **Comprehensive Test Suite & Plan** | [Test Plan & Verification Matrix](aws/test-03/README.md) | Documented |
 | **Critical Path Smoke Test** | 8-layer critical path verification script ([`scripts/smoke-test.sh`](scripts/smoke-test.sh)) | Functional |
-| **Load & SLA Performance Target** | k6 Load Test Suite ([`benchmarks/k6/load-test.js`](benchmarks/k6/load-test.js)) | Scripted |
+| **Load & SLA Performance Target** | Harness & Plan ([`aws/test-03/LOAD_TEST.md`](aws/test-03/LOAD_TEST.md)) | Ready (Pending Live Run) |
 | **Evidence Capture Instructions** | Instructions for live AWS screenshots ([`SCREENSHOTS_INSTRUCTIONS.md`](SCREENSHOTS_INSTRUCTIONS.md)) | Documented |
 
 ---
